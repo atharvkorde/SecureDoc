@@ -4,21 +4,21 @@ A college cryptography practical project that combines four syllabus concepts in
 
 | Practical | Concept | SecureDoc implementation |
 |---|---|---|
-| 03 | Symmetric-key cryptography | AES-256-GCM document encryption/decryption |
-| 04 | RSA public-key cryptography | RSA-2048, OAEP/SHA-256 encryption and PSS/SHA-256 digital signatures |
-| 06 | Message digest | SHA-1 academic demonstration and SHA-256 integrity digest |
-| 08 | Message authentication | HMAC-SHA256 generation and verification |
+| 03 | Symmetric-key cryptography | AES-256-GCM authenticated document encryption/decryption |
+| 04 | RSA public-key cryptography | RSA-2048+ keys, OAEP/SHA-256 encryption and PSS/SHA-256 digital signatures |
+| 06 | Message digest | SHA-1 legacy academic demonstration and SHA-256 integrity digest |
+| 08 | Message authentication | HMAC-SHA256 generation and constant-time verification |
 
 ## Features
 
-- Responsive dashboard with a separate workspace for each practical.
-- Text input and file upload (up to 10 MB) for hashing, AES encryption, signing and HMAC.
-- AES-256-GCM uses a fresh random 256-bit key and 96-bit nonce. Authentication is checked during decryption.
-- RSA-2048 key-pair generation, RSA-OAEP encryption for short messages (up to 190 bytes in this demo), RSA-PSS digital signatures and verification.
-- SHA-1 and SHA-256 document digests.
-- HMAC-SHA256 using a random 256-bit secret and constant-time comparison.
-- Downloadable encrypted package and restored document.
-- Security headers, upload-size limits, input validation and automated tests.
+- Responsive dashboard with separate workspaces for each practical (`Overview`, `Integrity check`, `AES encryption`, `RSA toolkit`, `HMAC authentication`).
+- Text input and file upload (up to 10 MB raw file size) for hashing, AES encryption, RSA signing/verification, and HMAC authentication.
+- **AES-256-GCM** generates a fresh random 256-bit key and 96-bit nonce per encryption, verifying authentication tags on decryption.
+- **RSA-2048** key-pair generation, **RSA-OAEP (SHA-256)** encryption/decryption for short messages (up to 190 UTF-8 bytes with live byte counter), and **RSA-PSS (SHA-256)** digital signatures. Enforces a minimum 2048-bit key size.
+- **SHA-1** (explicitly labeled as legacy/insecure for academic demonstration only) and **SHA-256** document digests.
+- **HMAC-SHA256** using a 256-bit CSPRNG secret (`secrets.token_bytes`) and constant-time comparison (`hmac.compare_digest`).
+- Downloadable encrypted JSON package, HMAC record JSON, and restored document (`.txt` for UTF-8 text, `.bin` for binary data).
+- Security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, strict `Content-Security-Policy`, and `Cache-Control: no-store` on `/api/*`), JSON error handlers, upload-size limits, and automated tests.
 
 ## Requirements
 
@@ -36,7 +36,7 @@ pip install -r requirements.txt
 python run.py
 ```
 
-Open http://127.0.0.1:5000.
+Open <http://127.0.0.1:5000>.
 
 ## Run locally (macOS/Linux)
 
@@ -49,31 +49,47 @@ pip install -r requirements.txt
 python run.py
 ```
 
-Open http://127.0.0.1:5000.
+Open <http://127.0.0.1:5000>.
 
 ## Run tests
 
 ```bash
-pytest -q
+python -m pytest -v
 ```
+
+## API overview
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `/` | `GET` | Serves the SecureDoc web interface |
+| `/health` | `GET` | Health check returning `{"status": "ok", "service": "SecureDoc"}` |
+| `/api/hash` | `POST` | Computes SHA-1 (legacy demo) and SHA-256 digests |
+| `/api/aes/encrypt` | `POST` | Encrypts text/bytes with AES-256-GCM |
+| `/api/aes/decrypt` | `POST` | Authenticates and decrypts an AES-256-GCM package |
+| `/api/rsa/keys` | `POST` | Generates an RSA-2048 key pair (PKCS#8 + SPKI PEM) |
+| `/api/rsa/encrypt` | `POST` | Encrypts up to 190 bytes using RSA-OAEP (SHA-256) |
+| `/api/rsa/decrypt` | `POST` | Decrypts RSA-OAEP (SHA-256) ciphertext |
+| `/api/rsa/sign` | `POST` | Signs document bytes using RSA-PSS (SHA-256) |
+| `/api/rsa/verify` | `POST` | Verifies an RSA-PSS (SHA-256) signature |
+| `/api/hmac/generate` | `POST` | Generates a 256-bit secret key and HMAC-SHA256 tag |
+| `/api/hmac/create` | `POST` | Computes an HMAC-SHA256 tag with a provided key (≥ 32 bytes) |
+| `/api/hmac/verify` | `POST` | Verifies an HMAC-SHA256 tag in constant time |
 
 ## Demonstration guide
 
-1. **Integrity:** open Integrity Check, type text or attach a file, and generate SHA-1 and SHA-256. Change one character and run it again to observe the digest change.
-2. **AES:** attach/type a document and encrypt it. Save the key and download the encrypted package JSON. Paste that JSON in the decrypt panel to restore the document. Modify the ciphertext to see GCM authentication fail.
-3. **RSA:** generate a key pair and keep the private key confidential. Encrypt a short message with the public key and decrypt it with the private key. For signatures, sign the exact document with the private key, then verify with the public key. Change the document to make verification fail.
-4. **HMAC:** generate a random secret and tag. Paste the exact document, key and tag in the verification panel. Change the document or key to see verification fail.
+1. **Integrity:** Open **Integrity check**, type text or attach a file, and generate SHA-1 and SHA-256. Change one character and run it again to observe the avalanche effect.
+2. **AES:** Attach or type a document and encrypt it. Save the key and download the encrypted package JSON. Paste that JSON in the decrypt panel to restore the document. Modify the ciphertext to see GCM authentication fail.
+3. **RSA:** Generate a key pair and keep the private key confidential. Encrypt a short message (≤ 190 UTF-8 bytes) with the public key and decrypt it with the private key. For signatures, sign the exact document with the private key, then verify with the public key. Change the document to make verification fail.
+4. **HMAC:** Generate a random secret and tag. Paste the exact document, key, and tag in the verification panel. Change the document or key to see verification fail.
 
 ## Security notes and limitations
 
-- **SHA-1 is included only for the syllabus demonstration.** SHA-1 has known collision weaknesses and must not be used for modern security. Use SHA-256 or a stronger modern hash for integrity workflows.
-- AES-GCM protects confidentiality and authenticates ciphertext. Never reuse a nonce with the same AES key. SecureDoc generates a fresh key and nonce for every encryption.
-- RSA is not suitable for encrypting large files directly. This project caps the direct RSA encryption demo at 190 bytes; use hybrid encryption (AES-GCM for the file and RSA-OAEP to wrap the AES key) for a production file-encryption design.
-- RSA keys are generated on the server and returned to the browser for this educational demo. The server does not persist them, but production key generation/storage should use a protected client or dedicated key-management service. The browser receives the private key, so only use test data.
-- HMAC keys are shared secrets. Anyone holding the key can create valid tags. Do not send keys over untrusted channels; use TLS and a secure key exchange/storage design.
-- The API receives uploaded file bytes in memory. The app does not intentionally save document uploads, keys or operation results to disk.
-- A production deployment must use HTTPS, a strong random `FLASK_SECRET_KEY`, rate limiting, CSRF protections where cookie-authenticated actions exist, hardened reverse-proxy settings, monitoring, dependency updates and an audited key-management process.
-- The built-in Flask development server is for local demonstrations only. For deployment use a production WSGI server such as Gunicorn behind a properly configured HTTPS reverse proxy.
+- **SHA-1 is included only for the syllabus demonstration.** SHA-1 has known collision weaknesses and must not be used for modern security. Use SHA-256 or stronger hashes for integrity workflows.
+- **AES-GCM** protects confidentiality and authenticates ciphertext. Never reuse a nonce with the same AES key. SecureDoc generates a fresh 256-bit key and 96-bit nonce for every encryption.
+- **RSA** is not suitable for encrypting large files directly. This project caps the direct RSA-OAEP encryption demo at 190 UTF-8 bytes and rejects keys smaller than 2048 bits; use hybrid encryption (AES-GCM for data and RSA-OAEP to wrap the AES key) for production file encryption.
+- **Educational key handling:** RSA private keys and symmetric/HMAC secret keys are returned to the browser for this local demonstration. The server does not persist them, and API responses carry `Cache-Control: no-store`, but production systems should use client-side key generation or a dedicated key-management service (KMS/HSM).
+- **HMAC** keys are shared secrets. Anyone holding the key can create valid tags. Never send keys over untrusted channels; use TLS and a secure key exchange/storage design.
+- **Deployment considerations:** The API processes uploaded bytes in memory only. If deployed beyond localhost, use HTTPS (HSTS via reverse proxy), a strong unique `FLASK_SECRET_KEY`, rate limiting, CSRF protection for any session-authenticated routes, and a production WSGI server such as Gunicorn rather than Flask's development server.
 - Do not use real confidential documents or production secrets in this academic demonstration.
 
 ## Project structure
@@ -91,6 +107,7 @@ SecureDoc/
 │       └── styles.css
 ├── tests/
 │   ├── conftest.py
+│   ├── test_api.py
 │   └── test_crypto.py
 ├── .env.example
 ├── .gitignore
