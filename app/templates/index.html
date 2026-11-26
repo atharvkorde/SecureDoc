@@ -172,7 +172,11 @@
           <div class="hash-value" id="aes-nonce"></div>
           <label for="aes-ciphertext">Ciphertext (Base64)</label>
           <textarea id="aes-ciphertext" readonly></textarea>
-          <button type="button" class="secondary" id="download-aes">Download encrypted package</button>
+          <div class="actions">
+            <button type="button" class="secondary" id="download-aes">Download encrypted package</button>
+            <button type="button" class="secondary" id="copy-aes-package">Copy package JSON</button>
+            <button type="button" class="secondary" id="use-aes-package">Load into decrypt</button>
+          </div>
         </div>
       </div>
       <div class="workspace-card secondary-workspace">

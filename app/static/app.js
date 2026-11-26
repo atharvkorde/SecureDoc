@@ -104,7 +104,7 @@ function packageData() {
   return {
     algorithm: 'AES-256-GCM',
     key: text('aes-key'),
-    nonce: text('aes-nonce'),
+    nonce: $('aes-nonce').textContent.trim(),
     ciphertext: text('aes-ciphertext'),
   };
 }
@@ -162,21 +162,32 @@ document.querySelectorAll('[data-go]').forEach((b) => {
   });
 });
 
+async function copyToClipboard(value, okMessage = 'Copied to clipboard.') {
+  try {
+    await navigator.clipboard.writeText(value);
+    toast(okMessage);
+  } catch {
+    const helper = document.createElement('textarea');
+    helper.value = value;
+    helper.setAttribute('readonly', '');
+    helper.style.position = 'fixed';
+    helper.style.opacity = '0';
+    document.body.appendChild(helper);
+    helper.select();
+    document.execCommand('copy');
+    helper.remove();
+    toast(okMessage);
+  }
+}
+
 document.querySelectorAll('[data-copy]').forEach((b) => {
-  b.addEventListener('click', async () => {
+  b.addEventListener('click', () => {
     const el = $(b.dataset.copy);
     if (!el.value) {
       toast('Nothing to copy yet.');
       return;
     }
-    try {
-      await navigator.clipboard.writeText(el.value);
-      toast('Copied to clipboard.');
-    } catch {
-      el.select();
-      document.execCommand('copy');
-      toast('Copied.');
-    }
+    copyToClipboard(el.value);
   });
 });
 
@@ -199,6 +210,15 @@ bindAction('aes-encrypt', async () => {
 
 $('download-aes').addEventListener('click', () => {
   download('securedoc-encrypted-package.json', JSON.stringify(packageData(), null, 2), 'application/json');
+});
+
+$('copy-aes-package').addEventListener('click', () => {
+  copyToClipboard(JSON.stringify(packageData(), null, 2), 'Encrypted package JSON copied.');
+});
+
+$('use-aes-package').addEventListener('click', () => {
+  $('aes-package').value = JSON.stringify(packageData(), null, 2);
+  toast('Encrypted package loaded into decrypt box.');
 });
 
 bindAction('aes-decrypt', async () => {
@@ -269,6 +289,7 @@ bindAction('rsa-sign', async () => {
 }, 'Signing...');
 
 bindAction('rsa-verify', async () => {
+  $('rsa-verify-result').classList.add('hidden');
   const r = await api('/rsa/verify', {
     public_key: text('rsa-public'),
     ...documentPayload('rsa-sign-text'),
@@ -294,6 +315,7 @@ $('download-hmac').addEventListener('click', () => {
 });
 
 bindAction('hmac-verify', async () => {
+  $('hmac-verify-result').classList.add('hidden');
   const r = await api('/hmac/verify', {
     ...documentPayload('hmac-verify-text'),
     key: text('hmac-verify-key'),

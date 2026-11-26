@@ -85,6 +85,8 @@ def create_app(test_config=None):
         if request.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store, max-age=0"
             response.headers["Pragma"] = "no-cache"
+        else:
+            response.headers["Cache-Control"] = "no-cache"
         return response
 
     return app
