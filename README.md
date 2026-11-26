@@ -11,14 +11,15 @@ A college cryptography practical project that combines four syllabus concepts in
 
 ## Features
 
-- Responsive dashboard with separate workspaces for each practical (`Overview`, `Integrity check`, `AES encryption`, `RSA toolkit`, `HMAC authentication`).
-- Text input and file upload (up to 10 MB raw file size) for hashing, AES encryption, RSA signing/verification, and HMAC authentication.
-- **AES-256-GCM** generates a fresh random 256-bit key and 96-bit nonce per encryption, verifying authentication tags on decryption.
+- Dark obsidian & warm-gold security dashboard with dedicated pages for **Dashboard**, **Document Encryption**, **Document Decryption**, **Digital Signature**, **Verify Document**, **Integrity Checker**, **HMAC Authentication**, **Security Activity**, and **Settings**, plus a collapsible mobile navigation drawer.
+- Real-time backend telemetry counters (`Total Documents Processed`, `Encrypted Documents`, `Verified Documents`, `Integrity Failures`) and non-sensitive activity log (no keys, plaintexts, or documents persisted).
+- Drag-and-drop or file-picker upload (up to 10 MB raw file size) with filename path-traversal validation and in-memory processing.
+- **AES-256-GCM** generates a fresh random 256-bit key and 96-bit nonce per encryption, verifying authentication tags on decryption and supporting JSON package file upload or manual fields.
 - **RSA-2048** key-pair generation, **RSA-OAEP (SHA-256)** encryption/decryption for short messages (up to 190 UTF-8 bytes with live byte counter), and **RSA-PSS (SHA-256)** digital signatures. Enforces a minimum 2048-bit key size.
-- **SHA-1** (explicitly labeled as legacy/insecure for academic demonstration only) and **SHA-256** document digests.
-- **HMAC-SHA256** using a 256-bit CSPRNG secret (`secrets.token_bytes`) and constant-time comparison (`hmac.compare_digest`).
-- Downloadable encrypted JSON package, HMAC record JSON, and restored document (`.txt` for UTF-8 text, `.bin` for binary data).
-- Security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, strict `Content-Security-Policy`, and `Cache-Control: no-store` on `/api/*`), JSON error handlers, upload-size limits, and automated tests.
+- **SHA-1** (explicitly labeled as legacy/insecure for academic demonstration only) and **SHA-256** document digests, plus constant-time digest comparison.
+- **HMAC-SHA256** using a 256-bit CSPRNG secret (`secrets.token_bytes`) or custom ≥256-bit key and constant-time comparison (`hmac.compare_digest`).
+- Downloadable encrypted JSON package, RSA signature record JSON, HMAC record JSON, and restored document (`.txt` for UTF-8 text, `.bin` for binary data), plus UI masking toggles for sensitive keys.
+- Security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, strict `Content-Security-Policy`, `Cache-Control: no-store` on `/api/*`, and `no-cache` on static/HTML assets), JSON error handlers, upload-size limits, and automated tests.
 
 ## Requirements
 
@@ -64,6 +65,7 @@ python -m pytest -v
 | `/` | `GET` | Serves the SecureDoc web interface |
 | `/health` | `GET` | Health check returning `{"status": "ok", "service": "SecureDoc"}` |
 | `/api/hash` | `POST` | Computes SHA-1 (legacy demo) and SHA-256 digests |
+| `/api/hash/compare` | `POST` | Compares document bytes against an expected SHA-256/SHA-1 digest |
 | `/api/aes/encrypt` | `POST` | Encrypts text/bytes with AES-256-GCM |
 | `/api/aes/decrypt` | `POST` | Authenticates and decrypts an AES-256-GCM package |
 | `/api/rsa/keys` | `POST` | Generates an RSA-2048 key pair (PKCS#8 + SPKI PEM) |
@@ -74,6 +76,10 @@ python -m pytest -v
 | `/api/hmac/generate` | `POST` | Generates a 256-bit secret key and HMAC-SHA256 tag |
 | `/api/hmac/create` | `POST` | Computes an HMAC-SHA256 tag with a provided key (≥ 32 bytes) |
 | `/api/hmac/verify` | `POST` | Verifies an HMAC-SHA256 tag in constant time |
+| `/api/metrics` | `GET` | Returns real in-memory session telemetry counters |
+| `/api/activity` | `GET` | Returns recent non-sensitive security events and counters |
+| `/api/activity/clear` | `POST` | Resets in-memory session telemetry counters and events |
+| `/api/config` | `GET` | Returns active server-side cryptographic limits |
 
 ## Demonstration guide
 
@@ -100,6 +106,7 @@ SecureDoc/
 │   ├── __init__.py
 │   ├── crypto_service.py
 │   ├── routes.py
+│   ├── telemetry.py
 │   ├── templates/
 │   │   └── index.html
 │   └── static/
