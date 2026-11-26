@@ -2,7 +2,7 @@ const $ = (id) => document.getElementById(id);
 let toastTimer;
 const uploadedFiles = new Map();
 const VIEW_TITLES = {
-  overview: 'Document security overview',
+  overview: 'Secure document workspace',
   integrity: 'Document integrity',
   encryption: 'AES encryption workspace',
   rsa: 'RSA security toolkit',
