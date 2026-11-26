@@ -22,6 +22,9 @@ def _resolve_max_content_length() -> int:
     return value
 
 
+from .telemetry import SecurityTelemetry
+
+
 def create_app(test_config=None):
     app = Flask(__name__)
     app.config.from_mapping(
@@ -31,6 +34,7 @@ def create_app(test_config=None):
     app.json.sort_keys = False
     if test_config:
         app.config.update(test_config)
+    app.extensions["telemetry"] = SecurityTelemetry()
 
     from .routes import api
     app.register_blueprint(api, url_prefix="/api")

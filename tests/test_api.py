@@ -179,3 +179,52 @@ def test_api_malformed_json_http_methods_404_and_413(client):
     assert oversized.status_code == 413
     assert oversized.is_json
     assert "Maximum upload size" in oversized.get_json()["error"]
+
+
+def test_api_metrics_activity_config_hash_compare_and_filename_safety(client):
+    initial = client.get("/api/metrics")
+    assert initial.status_code == 200
+    assert initial.get_json()["total_processed"] == 0
+
+    cfg = client.get("/api/config")
+    assert cfg.status_code == 200
+    assert cfg.get_json()["max_file_bytes"] == 10 * 1024 * 1024
+    assert cfg.get_json()["rsa_min_bits"] == 2048
+
+    # Path traversal in optional filename metadata is rejected
+    bad_name = client.post("/api/hash", json={"document": "hi", "filename": "../../etc/passwd"})
+    assert bad_name.status_code == 400
+    assert "path" in bad_name.get_json()["error"].lower()
+
+    # Perform real operations and verify metrics & activity update
+    enc = client.post("/api/aes/encrypt", json={"document": "secret", "filename": "report.txt"}).get_json()
+    dec_bad = client.post("/api/aes/decrypt", json={**enc, "ciphertext": c.b64e(b"0" * 32)})
+    assert dec_bad.status_code == 400
+
+    digest = c.sha256_digest(b"hello")
+    cmp_ok = client.post("/api/hash/compare", json={"document": "hello", "algorithm": "sha256", "expected_hash": digest})
+    assert cmp_ok.status_code == 200
+    assert cmp_ok.get_json()["match"] is True
+
+    cmp_bad = client.post("/api/hash/compare", json={"document": "hello!", "algorithm": "sha256", "expected_hash": digest})
+    assert cmp_bad.status_code == 200
+    assert cmp_bad.get_json()["match"] is False
+
+    bad_hex = client.post("/api/hash/compare", json={"document": "hello", "algorithm": "sha256", "expected_hash": "xyz"})
+    assert bad_hex.status_code == 400
+
+    act = client.get("/api/activity").get_json()
+    assert act["metrics"]["total_processed"] == 4
+    assert act["metrics"]["encrypted_documents"] == 1
+    assert act["metrics"]["verified_documents"] == 1
+    assert act["metrics"]["integrity_failures"] == 2
+    assert len(act["events"]) == 4
+    # Ensure secrets/keys/plaintexts are never stored in activity events
+    serialized = str(act["events"])
+    assert enc["key"] not in serialized
+    assert "secret" not in serialized
+
+    cleared = client.post("/api/activity/clear", json={})
+    assert cleared.status_code == 200
+    assert cleared.get_json()["metrics"]["total_processed"] == 0
+    assert cleared.get_json()["events"] == []
