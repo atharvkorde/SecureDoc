@@ -3,12 +3,15 @@ import base64
 import hashlib
 import hmac
 import os
+import secrets
 from cryptography.exceptions import InvalidSignature, InvalidTag
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 MAX_RSA_MESSAGE = 190  # conservative limit for RSA-2048 OAEP/SHA-256
+MIN_RSA_KEY_BITS = 2048
+MAX_RSA_KEY_BITS = 8192
 
 
 def b64e(data: bytes) -> str:
@@ -18,8 +21,9 @@ def b64e(data: bytes) -> str:
 def b64d(value: str) -> bytes:
     if not isinstance(value, str) or len(value) > 15_000_000:
         raise ValueError("Invalid or oversized Base64 value.")
+    cleaned = value.strip()
     try:
-        return base64.b64decode(value, validate=True)
+        return base64.b64decode(cleaned, validate=True)
     except Exception as exc:
         raise ValueError("Invalid Base64 encoding.") from exc
 
@@ -44,6 +48,8 @@ def aes_decrypt(key_text: str, nonce_text: str, ciphertext_text: str) -> bytes:
     key, nonce, ciphertext = b64d(key_text), b64d(nonce_text), b64d(ciphertext_text)
     if len(key) != 32 or len(nonce) != 12:
         raise ValueError("AES-256-GCM requires a 32-byte key and 12-byte nonce.")
+    if not ciphertext:
+        raise ValueError("Ciphertext is required.")
     try:
         return AESGCM(key).decrypt(nonce, ciphertext, None)
     except InvalidTag as exc:
@@ -64,48 +70,61 @@ def rsa_generate() -> dict:
     return {"private_key": private_pem.decode(), "public_key": public_pem.decode()}
 
 
+def _validate_rsa_key_size(key) -> None:
+    if key.key_size < MIN_RSA_KEY_BITS:
+        raise ValueError(f"RSA keys must be at least {MIN_RSA_KEY_BITS} bits.")
+    if key.key_size > MAX_RSA_KEY_BITS:
+        raise ValueError(f"RSA key size exceeds maximum supported {MAX_RSA_KEY_BITS} bits.")
+
+
 def load_public(pem: str):
-    if not isinstance(pem, str) or len(pem) > 20_000:
+    if not isinstance(pem, str) or not pem.strip() or len(pem) > 20_000:
         raise ValueError("Invalid public key.")
     try:
-        key = serialization.load_pem_public_key(pem.encode())
+        key = serialization.load_pem_public_key(pem.strip().encode("utf-8"))
     except Exception as exc:
         raise ValueError("Could not read public PEM key.") from exc
     if not isinstance(key, rsa.RSAPublicKey):
         raise ValueError("An RSA public key is required.")
+    _validate_rsa_key_size(key)
     return key
 
 
 def load_private(pem: str):
-    if not isinstance(pem, str) or len(pem) > 20_000:
+    if not isinstance(pem, str) or not pem.strip() or len(pem) > 20_000:
         raise ValueError("Invalid private key.")
     try:
-        key = serialization.load_pem_private_key(pem.encode(), password=None)
+        key = serialization.load_pem_private_key(pem.strip().encode("utf-8"), password=None)
     except Exception as exc:
         raise ValueError("Could not read unencrypted PKCS#8 private PEM key.") from exc
     if not isinstance(key, rsa.RSAPrivateKey):
         raise ValueError("An RSA private key is required.")
+    _validate_rsa_key_size(key)
     return key
 
 
 def rsa_encrypt(public_pem: str, data: bytes) -> str:
+    if not isinstance(data, (bytes, bytearray)):
+        raise ValueError("Message bytes are required.")
     if len(data) > MAX_RSA_MESSAGE:
         raise ValueError("RSA demo accepts up to 190 bytes. Use AES for larger documents.")
     encrypted = load_public(public_pem).encrypt(
-        data,
+        bytes(data),
         padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None),
     )
     return b64e(encrypted)
 
 
 def rsa_decrypt(private_pem: str, ciphertext: str) -> bytes:
+    private_key = load_private(private_pem)
+    raw_ciphertext = b64d(ciphertext)
+    if not raw_ciphertext:
+        raise ValueError("Ciphertext is required.")
     try:
-        return load_private(private_pem).decrypt(
-            b64d(ciphertext),
+        return private_key.decrypt(
+            raw_ciphertext,
             padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None),
         )
-    except ValueError:
-        raise
     except Exception as exc:
         raise ValueError("RSA decryption failed. Check the private key and ciphertext.") from exc
 
@@ -120,15 +139,26 @@ def rsa_sign(private_pem: str, data: bytes) -> str:
 
 
 def rsa_verify(public_pem: str, data: bytes, signature: str) -> bool:
+    public_key = load_public(public_pem)
+    sig_bytes = b64d(signature)
+    if not sig_bytes:
+        return False
     try:
-        load_public(public_pem).verify(
-            b64d(signature), data,
+        public_key.verify(
+            sig_bytes,
+            data,
             padding.PSS(mgf=padding.MGF1(hashes.SHA256()), salt_length=padding.PSS.MAX_LENGTH),
             hashes.SHA256(),
         )
         return True
     except InvalidSignature:
         return False
+
+
+def hmac_generate(data: bytes) -> dict:
+    key = secrets.token_bytes(32)
+    key_b64 = b64e(key)
+    return {"key": key_b64, "tag": hmac.new(key, data, hashlib.sha256).hexdigest()}
 
 
 def hmac_sha256(key_text: str, data: bytes) -> str:
@@ -139,7 +169,10 @@ def hmac_sha256(key_text: str, data: bytes) -> str:
 
 
 def hmac_verify(key_text: str, data: bytes, expected: str) -> bool:
-    if not isinstance(expected, str) or len(expected) != 64:
-        return False
     actual = hmac_sha256(key_text, data)
-    return hmac.compare_digest(actual, expected.lower())
+    if not isinstance(expected, str):
+        return False
+    candidate = expected.strip().lower()
+    if len(candidate) != 64:
+        return False
+    return hmac.compare_digest(actual, candidate)

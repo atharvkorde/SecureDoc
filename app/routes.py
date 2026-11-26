@@ -8,8 +8,15 @@ api = Blueprint("api", __name__)
 def payload():
     data = request.get_json(silent=True)
     if not isinstance(data, dict):
-        raise ValueError("A JSON request body is required.")
+        raise ValueError("A JSON object request body is required.")
     return data
+
+
+def _require_text_field(data: dict, field: str, label: str) -> str:
+    value = data.get(field)
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{label} is required.")
+    return value
 
 
 def document_bytes(data):
@@ -89,15 +96,14 @@ def rsa_sign():
 @api.post("/rsa/verify")
 def rsa_verify():
     data = payload()
-    valid = crypto.rsa_verify(data.get("public_key", ""), document_bytes(data), data.get("signature", ""))
+    signature = _require_text_field(data, "signature", "Signature")
+    valid = crypto.rsa_verify(data.get("public_key", ""), document_bytes(data), signature)
     return jsonify(valid=valid, message="Signature is valid." if valid else "Signature is invalid or document was changed.")
 
 
 @api.post("/hmac/generate")
 def hmac_generate():
-    import secrets
-    key = secrets.token_bytes(32)
-    return jsonify(key=crypto.b64e(key), tag=crypto.hmac_sha256(crypto.b64e(key), document_bytes(payload())))
+    return jsonify(crypto.hmac_generate(document_bytes(payload())))
 
 
 @api.post("/hmac/create")
@@ -109,5 +115,6 @@ def hmac_create():
 @api.post("/hmac/verify")
 def hmac_check():
     data = payload()
-    valid = crypto.hmac_verify(data.get("key", ""), document_bytes(data), data.get("tag", ""))
+    tag = _require_text_field(data, "tag", "Expected HMAC tag")
+    valid = crypto.hmac_verify(data.get("key", ""), document_bytes(data), tag)
     return jsonify(valid=valid, message="HMAC matches." if valid else "HMAC mismatch: wrong key or modified document.")
