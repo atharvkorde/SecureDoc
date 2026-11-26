@@ -3,304 +3,792 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#060504">
-  <meta name="description" content="SecureDoc — secure documents with AES, RSA, SHA and HMAC cryptography."><title>SecureDoc — Secure Document Lab</title>
+  <meta name="theme-color" content="#0b0c10">
+  <meta name="description" content="SecureDoc — secure documents with AES-256-GCM, RSA-2048, SHA-256, and HMAC-SHA256 cryptography.">
+  <title>SecureDoc — Document Security &amp; Authentication</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
-  <link rel="stylesheet" href="/static/theme.css">
   <script defer src="/static/app.js"></script>
 </head>
 <body>
 <div class="shell">
-  <aside class="sidebar" aria-label="Workspace navigation">
-    <a class="brand" href="#overview" data-go="overview">
-      <span class="brand-mark" aria-hidden="true">✳</span>
-      <span>secure<span class="brand-blue">doc</span><small>DOCUMENT AUTHENTICATION</small></span>
-    </a>
-    <div class="nav-label">WORKSPACE</div>
-    <button type="button" class="nav-item active" data-view="overview" aria-label="Overview" title="Overview" aria-current="page"><span aria-hidden="true">◫</span> Overview</button>
-    <button type="button" class="nav-item" data-view="integrity" aria-label="Integrity check" title="Integrity check"><span aria-hidden="true">⌁</span> Integrity check</button>
-    <button type="button" class="nav-item" data-view="encryption" aria-label="AES encryption" title="AES encryption"><span aria-hidden="true">▣</span> AES encryption</button>
-    <button type="button" class="nav-item" data-view="rsa" aria-label="RSA toolkit" title="RSA toolkit"><span aria-hidden="true">⌑</span> RSA toolkit</button>
-    <button type="button" class="nav-item" data-view="authentication" aria-label="HMAC authentication" title="HMAC authentication"><span aria-hidden="true">⬡</span> HMAC authentication</button>
+  <div class="sidebar-backdrop" id="sidebar-backdrop" aria-hidden="true"></div>
+
+  <aside class="sidebar" id="sidebar" aria-label="Workspace navigation">
+    <div class="sidebar-top">
+      <a class="brand" href="#overview" data-go="overview">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l7 3v6c0 5-3.4 9.3-7 11-3.6-1.7-7-6-7-11V5l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+        </span>
+        <span>
+          <span class="brand-name">Secure<span>Doc</span></span>
+          <small>DOCUMENT SECURITY</small>
+        </span>
+      </a>
+      <button type="button" class="icon-btn sidebar-close" id="sidebar-close" aria-label="Close navigation menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">WORKSPACE</div>
+      <button type="button" class="nav-item active" data-view="overview" aria-current="page">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button type="button" class="nav-item" data-view="encryption">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+        <span>Document Encryption</span>
+      </button>
+      <button type="button" class="nav-item" data-view="decryption">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.5-1.9"/></svg>
+        <span>Document Decryption</span>
+      </button>
+      <button type="button" class="nav-item" data-view="rsa">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+        <span>Digital Signature</span>
+      </button>
+      <button type="button" class="nav-item" data-view="verify">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2l7 3v6c0 5-3.4 9.3-7 11-3.6-1.7-7-6-7-11V5l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
+        <span>Verify Document</span>
+      </button>
+      <button type="button" class="nav-item" data-view="integrity">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>
+        <span>Integrity Checker</span>
+      </button>
+      <button type="button" class="nav-item" data-view="authentication">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 11-7.8 7.8 5.5 5.5 0 017.8-7.8z"/><path d="M15.5 7.5l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+        <span>HMAC Authentication</span>
+      </button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">SYSTEM</div>
+      <button type="button" class="nav-item" data-view="activity">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>
+        <span>Security Activity</span>
+      </button>
+      <button type="button" class="nav-item" data-view="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.8l.1.1a2 2 0 01-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.8-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1-1.5 1.7 1.7 0 00-1.8.3l-.1.1a2 2 0 01-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.8 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.8l-.1-.1a2 2 0 012.8-2.8l.1.1a1.7 1.7 0 001.8.3h.1a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.8-.3l.1-.1a2 2 0 012.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.8v.1a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+        <span>Settings</span>
+      </button>
+    </div>
+
     <div class="sidebar-bottom">
       <div class="secure-note">
         <span class="pulse" aria-hidden="true"></span>
-        <div><b>Local learning workspace</b><small>Demo data is not stored</small></div>
+        <div>
+          <b>In-Memory Processing</b>
+          <small>No files or keys stored on disk</small>
+        </div>
       </div>
-      <small class="version">SECUREDOC · ACADEMIC EDITION 1.0</small>
+      <small class="version">SECUREDOC · ACADEMIC EDITION 2.0</small>
     </div>
   </aside>
-  <main class="main">
+
+  <div class="workspace-shell">
     <header class="topbar">
-      <div>
-        <span class="eyebrow">SECURE DOCUMENT AUTHENTICATION / LAB</span>
-        <h1 id="page-title">Secure document workspace</h1>
+      <div class="topbar-left">
+        <button type="button" class="icon-btn menu-toggle" id="menu-toggle" aria-label="Open navigation menu" aria-expanded="false">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div>
+          <span class="eyebrow">SECURE DOCUMENT AUTHENTICATION</span>
+          <h1 id="page-title">Dashboard</h1>
+        </div>
       </div>
-      <div class="top-actions">
+
+      <div class="topbar-right">
+        <div class="search-wrap">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="search" id="global-search" placeholder="Search tools or activity..." aria-label="Search tools or activity" autocomplete="off">
+          <div class="search-results hidden" id="search-results" role="listbox" aria-label="Quick navigation results"></div>
+        </div>
+
+        <div class="notif-wrap">
+          <button type="button" class="icon-btn" id="notif-btn" aria-label="Security notifications" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+            <span class="notif-badge hidden" id="notif-badge">0</span>
+          </button>
+          <div class="notif-popover hidden" id="notif-popover" role="region" aria-label="Recent security notifications">
+            <div class="popover-head">
+              <b>Security Notifications</b>
+              <button type="button" class="link-btn" data-go="activity">View all</button>
+            </div>
+            <div id="notif-list" class="notif-list">
+              <div class="empty-mini">No security events recorded yet.</div>
+            </div>
+          </div>
+        </div>
+
         <span class="status" id="api-status"><i aria-hidden="true"></i> API ready</span>
-        <div class="avatar" aria-hidden="true">SD</div>
+
+        <button type="button" class="profile-pill" data-go="settings" title="Workspace settings">
+          <span class="avatar" aria-hidden="true">SD</span>
+          <span class="profile-meta">
+            <b>Crypto Lab</b>
+            <small>Local Session</small>
+          </span>
+        </button>
       </div>
     </header>
 
-    <section class="view active" id="view-overview">
-      <div class="hero">
-        <div>
-          <span class="hero-kicker"><span class="live-dot"></span> PRIVATE BY DESIGN · CRYPTOGRAPHY LAB</span>
-          <h2>Trust every file.<br>Verify every <em>byte.</em></h2>
-          <p>A focused workspace for document encryption, digital signatures and integrity checks — powered by four essential cryptographic techniques.</p>
-          <button type="button" class="primary" data-go="encryption">Explore the toolkit <span aria-hidden="true">→</span></button>
+    <main class="main">
+      <!-- DASHBOARD OVERVIEW -->
+      <section class="view active" id="view-overview">
+        <div class="hero">
+          <div class="hero-content">
+            <span class="hero-kicker"><span class="live-dot" aria-hidden="true"></span> CRYPTOGRAPHY SUITE · LOCAL VERIFICATION LAB</span>
+            <h2>Protect documents.<br>Authenticate every <em>byte.</em></h2>
+            <p>Encrypt confidential files with AES-256-GCM, sign with RSA-2048 PSS, verify SHA-256 integrity digests, and validate HMAC-SHA256 authentication codes in one workspace.</p>
+            <div class="hero-actions">
+              <button type="button" class="primary" data-go="encryption">Encrypt Document <span aria-hidden="true">→</span></button>
+              <button type="button" class="secondary" data-go="verify">Verify Document</button>
+            </div>
+          </div>
+          <div class="hero-art" aria-hidden="true">
+            <div class="orbit orbit-one"></div>
+            <div class="orbit orbit-two"></div>
+            <div class="shield">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l7 3v6c0 5-3.4 9.3-7 11-3.6-1.7-7-6-7-11V5l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
+            </div>
+            <div class="float-card card-a"><span>SYMMETRIC</span><b>AES-256-GCM</b></div>
+            <div class="float-card card-b"><span>DIGEST</span><b>SHA-256</b></div>
+            <div class="float-card card-c"><span>ASYMMETRIC</span><b>RSA-2048</b></div>
+          </div>
         </div>
-        <div class="hero-art" aria-hidden="true">
-          <div class="orbit orbit-one"></div>
-          <div class="orbit orbit-two"></div>
-          <div class="shield"><span>✓</span></div>
-          <div class="float-card card-a">AES-256 <b>Encrypted</b></div>
-          <div class="float-card card-b">SHA-256 <b>Verified</b></div>
-          <div class="float-card card-c">RSA <b>Protected</b></div>
+
+        <div class="kpi-grid" aria-label="Live backend telemetry">
+          <article class="kpi-card">
+            <div class="kpi-head">
+              <span>Total Documents Processed</span>
+              <span class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>
+              </span>
+            </div>
+            <strong class="kpi-value" id="stat-total">0</strong>
+            <small class="kpi-sub" id="stat-total-sub">No operations recorded in this session</small>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-head">
+              <span>Encrypted Documents</span>
+              <span class="kpi-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+              </span>
+            </div>
+            <strong class="kpi-value" id="stat-encrypted">0</strong>
+            <small class="kpi-sub">AES-256-GCM &amp; RSA-OAEP</small>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-head">
+              <span>Verified Documents</span>
+              <span class="kpi-icon good">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+              </span>
+            </div>
+            <strong class="kpi-value" id="stat-verified">0</strong>
+            <small class="kpi-sub">RSA-PSS, HMAC &amp; digest checks</small>
+          </article>
+          <article class="kpi-card">
+            <div class="kpi-head">
+              <span>Integrity Failures</span>
+              <span class="kpi-icon warn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+              </span>
+            </div>
+            <strong class="kpi-value" id="stat-failures">0</strong>
+            <small class="kpi-sub">Tamper &amp; mismatch detections</small>
+          </article>
         </div>
-      </div>
 
-      <div class="section-heading">
-        <div>
-          <span class="eyebrow">CRYPTOGRAPHY TOOLKIT</span>
-          <h2>One workspace. Four layers of trust.</h2>
+        <div class="section-heading">
+          <div>
+            <span class="eyebrow">CRYPTOGRAPHY MODULES</span>
+            <h2>Security Operations</h2>
+          </div>
+          <span class="muted">Select a dedicated workspace</span>
         </div>
-        <span class="muted">Built around your cryptography practicals</span>
-      </div>
 
-      <div class="tool-grid">
-        <button type="button" class="tool-card" data-go="encryption">
-          <span class="tool-icon blue" aria-hidden="true">▣</span>
-          <span class="tool-tag">PRACTICAL 03</span>
-          <b>AES encryption</b>
-          <p>Protect document contents with authenticated AES-256-GCM encryption.</p>
-          <span class="tool-link">Open tool →</span>
-        </button>
-        <button type="button" class="tool-card" data-go="rsa">
-          <span class="tool-icon violet" aria-hidden="true">⌑</span>
-          <span class="tool-tag">PRACTICAL 04</span>
-          <b>RSA public key</b>
-          <p>Generate key pairs, encrypt short messages and sign documents.</p>
-          <span class="tool-link">Open tool →</span>
-        </button>
-        <button type="button" class="tool-card" data-go="integrity">
-          <span class="tool-icon amber" aria-hidden="true">⌁</span>
-          <span class="tool-tag">PRACTICAL 06</span>
-          <b>Document integrity</b>
-          <p>Calculate SHA-1 for academic demonstration and SHA-256 for modern integrity checks.</p>
-          <span class="tool-link">Open tool →</span>
-        </button>
-        <button type="button" class="tool-card" data-go="authentication">
-          <span class="tool-icon green" aria-hidden="true">⬡</span>
-          <span class="tool-tag">PRACTICAL 08</span>
-          <b>HMAC authentication</b>
-          <p>Authenticate document content with a keyed SHA-256 message authentication code.</p>
-          <span class="tool-link">Open tool →</span>
-        </button>
-      </div>
+        <div class="tool-grid five-cols">
+          <button type="button" class="tool-card" data-go="encryption">
+            <span class="tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+            </span>
+            <span class="tool-tag">PRACTICAL 03</span>
+            <b>Encrypt Document</b>
+            <p>Protect text or files up to 10 MB with authenticated AES-256-GCM encryption.</p>
+            <span class="tool-link">Open Encryption →</span>
+          </button>
+          <button type="button" class="tool-card" data-go="decryption">
+            <span class="tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.5-1.9"/></svg>
+            </span>
+            <span class="tool-tag">PRACTICAL 03</span>
+            <b>Decrypt Document</b>
+            <p>Verify the GCM authentication tag and restore encrypted packages or files.</p>
+            <span class="tool-link">Open Decryption →</span>
+          </button>
+          <button type="button" class="tool-card" data-go="rsa">
+            <span class="tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+            </span>
+            <span class="tool-tag">PRACTICAL 04</span>
+            <b>Digital Signature</b>
+            <p>Generate RSA-2048 keys, sign documents with PSS, and encrypt short secrets via OAEP.</p>
+            <span class="tool-link">Open RSA Toolkit →</span>
+          </button>
+          <button type="button" class="tool-card" data-go="integrity">
+            <span class="tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>
+            </span>
+            <span class="tool-tag">PRACTICAL 06</span>
+            <b>Document Integrity</b>
+            <p>Compute SHA-256 digests and legacy SHA-1 hashes, and compare file fingerprints.</p>
+            <span class="tool-link">Open Integrity →</span>
+          </button>
+          <button type="button" class="tool-card" data-go="authentication">
+            <span class="tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 11-7.8 7.8 5.5 5.5 0 017.8-7.8z"/><path d="M15.5 7.5l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            </span>
+            <span class="tool-tag">PRACTICAL 08</span>
+            <b>HMAC Authentication</b>
+            <p>Generate 256-bit shared keys and verify HMAC-SHA256 tags in constant time.</p>
+            <span class="tool-link">Open HMAC →</span>
+          </button>
+        </div>
 
-      <div class="bottom-grid">
-        <div class="panel syllabus">
+        <div class="bottom-grid">
+          <div class="panel">
+            <div class="panel-title">
+              <div>
+                <span class="eyebrow">RECENT TELEMETRY</span>
+                <h3>Recent Security Activity</h3>
+              </div>
+              <button type="button" class="secondary small-btn" data-go="activity">Full Audit Log</button>
+            </div>
+            <div id="overview-activity" class="activity-preview">
+              <div class="empty-state">
+                <b>No activity recorded yet</b>
+                <p>Encrypt, hash, sign, or verify a document to inspect real-time backend telemetry here.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel note-panel">
+            <div class="panel-title">
+              <div>
+                <span class="eyebrow">SYLLABUS &amp; SECURITY</span>
+                <h3>Cryptographic Guarantees</h3>
+              </div>
+              <span class="tiny-pill">4 PRACTICALS</span>
+            </div>
+            <div class="syllabus-row"><span class="syllabus-num">03</span><div><b>AES-256-GCM</b><small>256-bit key · 96-bit CSPRNG nonce · Authenticated</small></div><span class="check" aria-hidden="true">✓</span></div>
+            <div class="syllabus-row"><span class="syllabus-num">04</span><div><b>RSA-2048+</b><small>OAEP/SHA-256 encryption · PSS/SHA-256 signatures</small></div><span class="check" aria-hidden="true">✓</span></div>
+            <div class="syllabus-row"><span class="syllabus-num">06</span><div><b>SHA-256 &amp; SHA-1</b><small>SHA-1 marked legacy/insecure · Prefer SHA-256</small></div><span class="check" aria-hidden="true">✓</span></div>
+            <div class="syllabus-row"><span class="syllabus-num">08</span><div><b>HMAC-SHA256</b><small>256-bit secret · Constant-time verification</small></div><span class="check" aria-hidden="true">✓</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOCUMENT ENCRYPTION -->
+      <section class="view" id="view-encryption">
+        <div class="intro">
+          <span class="eyebrow">PRACTICAL 03 · SYMMETRIC ENCRYPTION</span>
+          <h2>Document Encryption</h2>
+          <p>Encrypt documents or text in memory using authenticated AES-256-GCM. A fresh 256-bit key and 96-bit nonce are generated for each encryption.</p>
+        </div>
+        <div class="workspace-card">
           <div class="panel-title">
-            <div><span class="eyebrow">PROJECT COVERAGE</span><h3>Practical mapping</h3></div>
-            <span class="tiny-pill">4 CONCEPTS</span>
+            <div>
+              <span class="eyebrow">CIPHER CONFIGURATION</span>
+              <h3>Encrypt with AES-256-GCM</h3>
+            </div>
+            <span class="tiny-pill">AUTHENTICATED AEAD</span>
           </div>
-          <div class="syllabus-row"><span class="syllabus-num">03</span><div><b>Symmetric key cryptography</b><small>AES-256-GCM · Encryption and decryption</small></div><span class="check" aria-hidden="true">✓</span></div>
-          <div class="syllabus-row"><span class="syllabus-num">04</span><div><b>Public key cryptography</b><small>RSA-OAEP · RSA-PSS digital signatures</small></div><span class="check" aria-hidden="true">✓</span></div>
-          <div class="syllabus-row"><span class="syllabus-num">06</span><div><b>Message digest</b><small>SHA-1 academic demo · SHA-256 recommended</small></div><span class="check" aria-hidden="true">✓</span></div>
-          <div class="syllabus-row"><span class="syllabus-num">08</span><div><b>Message authentication</b><small>HMAC-SHA256 · Keyed verification</small></div><span class="check" aria-hidden="true">✓</span></div>
-        </div>
-        <div class="panel note-panel">
-          <span class="note-icon" aria-hidden="true">i</span>
-          <h3>Security note</h3>
-          <p>SHA-1 is included only to satisfy the academic practical. It is collision-broken and must not be used for modern security. Prefer SHA-256 or stronger.</p>
-          <a href="https://cryptography.io/en/latest/" target="_blank" rel="noopener noreferrer">Cryptography library docs ↗</a>
-        </div>
-      </div>
-    </section>
 
-    <section class="view" id="view-integrity">
-      <div class="intro">
-        <span class="eyebrow">PRACTICAL 06 · MESSAGE DIGEST</span>
-        <h2>Verify document integrity</h2>
-        <p>Generate a document fingerprint. If even one character changes, its digest will change.</p>
-      </div>
-      <div class="workspace-card">
-        <label for="integrity-text">Document content</label>
-        <input class="file-input" type="file" data-file-target="integrity-text" aria-label="Choose a document file for integrity check">
-        <textarea id="integrity-text" placeholder="Paste or type the document text you want to verify..."></textarea>
-        <div class="actions">
-          <button type="button" class="primary" id="hash-btn">Generate hash <span aria-hidden="true">→</span></button>
-          <span class="helper">Text is processed in memory only.</span>
-        </div>
-        <div class="result hidden" id="hash-result">
-          <div class="result-head"><b>Digest results</b><span class="tiny-pill">GENERATED</span></div>
-          <label>SHA-1 <span class="legacy">LEGACY / ACADEMIC ONLY</span></label>
-          <div class="hash-value" id="sha1-value"></div>
-          <label>SHA-256 <span class="recommended">RECOMMENDED</span></label>
-          <div class="hash-value" id="sha256-value"></div>
-          <small id="hash-bytes"></small>
-        </div>
-      </div>
-    </section>
+          <label for="aes-algorithm">Encryption algorithm</label>
+          <select id="aes-algorithm" aria-label="Encryption algorithm">
+            <option value="AES-256-GCM" selected>AES-256-GCM (256-bit key · 96-bit nonce · Authenticated)</option>
+          </select>
 
-    <section class="view" id="view-encryption">
-      <div class="intro">
-        <span class="eyebrow">PRACTICAL 03 · SYMMETRIC CRYPTOGRAPHY</span>
-        <h2>AES document encryption</h2>
-        <p>Encrypt text or files with AES-256-GCM. The generated key is shown once—save it securely.</p>
-      </div>
-      <div class="workspace-card">
-        <label for="aes-text">Document content</label>
-        <input class="file-input" type="file" data-file-target="aes-text" aria-label="Choose a document file to encrypt">
-        <textarea id="aes-text" placeholder="Enter text to encrypt..."></textarea>
-        <div class="actions">
-          <button type="button" class="primary" id="aes-encrypt">Encrypt document <span aria-hidden="true">→</span></button>
-          <span class="helper">A fresh random key and nonce are generated for each encryption.</span>
-        </div>
-        <div class="result hidden" id="aes-result">
-          <div class="result-head"><b>Encrypted package</b><span class="tiny-pill">AES-256-GCM</span></div>
-          <div class="warning-box">Save the key now. SecureDoc does not retain it and cannot recover it if lost.</div>
-          <label for="aes-key">Secret key (Base64)</label>
-          <div class="secret-row">
-            <textarea id="aes-key" readonly></textarea>
-            <button type="button" class="secondary copy" data-copy="aes-key">Copy</button>
+          <label for="aes-text">Document input or file upload (max 10 MB)</label>
+          <div class="dropzone" data-dropzone="aes-text">
+            <input class="file-input" id="aes-file" type="file" data-file-target="aes-text" aria-label="Choose a document file to encrypt">
+            <span class="file-meta" id="aes-text-meta">No file attached — type text below or choose a file.</span>
           </div>
-          <label>Nonce</label>
-          <div class="hash-value" id="aes-nonce"></div>
-          <label for="aes-ciphertext">Ciphertext (Base64)</label>
-          <textarea id="aes-ciphertext" readonly></textarea>
+          <textarea id="aes-text" placeholder="Enter confidential document text to encrypt..."></textarea>
+
           <div class="actions">
-            <button type="button" class="secondary" id="download-aes">Download encrypted package</button>
-            <button type="button" class="secondary" id="copy-aes-package">Copy package JSON</button>
-            <button type="button" class="secondary" id="use-aes-package">Load into decrypt</button>
+            <button type="button" class="primary" id="aes-encrypt">Encrypt Document <span aria-hidden="true">→</span></button>
+            <button type="button" class="secondary clear-target" data-clear-target="aes-text">Clear Input</button>
+            <span class="helper">Processed in memory only. Key is never stored on the server.</span>
           </div>
-        </div>
-      </div>
-      <div class="workspace-card secondary-workspace">
-        <div class="panel-title">
-          <div><span class="eyebrow">RESTORE DOCUMENT</span><h3>Decrypt an AES package</h3></div>
-        </div>
-        <label for="aes-package">Encrypted package JSON</label>
-        <textarea id="aes-package" placeholder="Paste the downloaded encrypted package JSON..."></textarea>
-        <div class="actions">
-          <button type="button" class="primary" id="aes-decrypt">Decrypt package</button>
-        </div>
-        <div class="result hidden" id="aes-plain-result">
-          <label for="aes-plain">Decrypted document</label>
-          <textarea id="aes-plain" readonly></textarea>
-          <button type="button" class="secondary" id="download-plain">Download restored document</button>
-        </div>
-      </div>
-    </section>
 
-    <section class="view" id="view-rsa">
-      <div class="intro">
-        <span class="eyebrow">PRACTICAL 04 · PUBLIC KEY CRYPTOGRAPHY</span>
-        <h2>RSA key &amp; signature toolkit</h2>
-        <p>Generate a 2048-bit RSA key pair. Use OAEP for short-message encryption and PSS for digital signatures.</p>
-      </div>
-      <div class="workspace-card">
-        <div class="panel-title">
-          <div><span class="eyebrow">KEY MANAGEMENT</span><h3>Generate RSA key pair</h3></div>
-          <button type="button" class="primary" id="rsa-generate">Generate keys</button>
-        </div>
-        <div class="key-grid">
-          <div>
-            <label for="rsa-public">Public key (shareable)</label>
-            <textarea id="rsa-public" placeholder="Your public key appears here..."></textarea>
-            <button type="button" class="secondary" data-copy="rsa-public">Copy public key</button>
-          </div>
-          <div>
-            <label for="rsa-private">Private key (keep secret)</label>
-            <textarea id="rsa-private" placeholder="Your private key appears here..."></textarea>
-            <button type="button" class="secondary" data-copy="rsa-private">Copy private key</button>
-          </div>
-        </div>
-        <div class="warning-box">Private key is returned to this browser for this demonstration. Do not share it or use this demo key management for production.</div>
-      </div>
-      <div class="workspace-card secondary-workspace">
-        <div class="panel-title">
-          <div><span class="eyebrow">RSA-OAEP</span><h3>Encrypt and decrypt a short message</h3></div>
-        </div>
-        <label for="rsa-text">Message (maximum 190 UTF-8 bytes)</label>
-        <textarea id="rsa-text" placeholder="Enter a short message..."></textarea>
-        <small class="helper byte-counter" id="rsa-byte-count">0 / 190 bytes</small>
-        <div class="actions">
-          <button type="button" class="primary" id="rsa-encrypt">Encrypt with public key</button>
-          <button type="button" class="secondary" id="rsa-decrypt">Decrypt with private key</button>
-        </div>
-        <label for="rsa-cipher">Ciphertext (Base64)</label>
-        <textarea id="rsa-cipher" placeholder="Encrypted message appears here..."></textarea>
-        <div class="result hidden" id="rsa-plain-result">
-          <label>Decrypted message</label>
-          <div class="hash-value" id="rsa-plain"></div>
-        </div>
-      </div>
-      <div class="workspace-card secondary-workspace">
-        <div class="panel-title">
-          <div><span class="eyebrow">RSA-PSS + SHA-256</span><h3>Digital signature</h3></div>
-        </div>
-        <label for="rsa-sign-text">Document to sign / verify</label>
-        <input class="file-input" type="file" data-file-target="rsa-sign-text" aria-label="Choose a document file to sign or verify">
-        <textarea id="rsa-sign-text" placeholder="Enter the exact document content..."></textarea>
-        <div class="actions">
-          <button type="button" class="primary" id="rsa-sign">Sign with private key</button>
-          <button type="button" class="secondary" id="rsa-verify">Verify with public key</button>
-        </div>
-        <label for="rsa-signature">Signature (Base64)</label>
-        <textarea id="rsa-signature" placeholder="Signature appears here..."></textarea>
-        <div class="inline-status hidden" id="rsa-verify-result" role="status" aria-live="polite"></div>
-      </div>
-    </section>
+          <div class="result hidden" id="aes-result">
+            <div class="result-head">
+              <b>Encrypted Package Ready</b>
+              <span class="status-pill good" id="aes-status-badge">AES-256-GCM Encrypted</span>
+            </div>
+            <div class="warning-box">Save this secret key and package now. SecureDoc does not store keys and cannot recover lost keys.</div>
 
-    <section class="view" id="view-authentication">
-      <div class="intro">
-        <span class="eyebrow">PRACTICAL 08 · MESSAGE AUTHENTICATION</span>
-        <h2>HMAC-SHA256 authentication</h2>
-        <p>HMAC uses a shared secret key to verify that a message came from someone who knows the key and has not been altered.</p>
-      </div>
-      <div class="workspace-card">
-        <label for="hmac-text">Document content</label>
-        <input class="file-input" type="file" data-file-target="hmac-text" aria-label="Choose a document file for HMAC generation">
-        <textarea id="hmac-text" placeholder="Enter the document content to authenticate..."></textarea>
-        <div class="actions">
-          <button type="button" class="primary" id="hmac-generate">Generate secret key + HMAC</button>
-          <span class="helper">A random 256-bit key is generated.</span>
-        </div>
-        <div class="result hidden" id="hmac-result">
-          <label for="hmac-key">Secret key (Base64) — keep private</label>
-          <div class="secret-row">
-            <textarea id="hmac-key" readonly></textarea>
-            <button type="button" class="secondary copy" data-copy="hmac-key">Copy</button>
-          </div>
-          <label for="hmac-tag">HMAC-SHA256 tag</label>
-          <textarea id="hmac-tag" readonly></textarea>
-          <button type="button" class="secondary" id="download-hmac">Download authentication record</button>
-        </div>
-      </div>
-      <div class="workspace-card secondary-workspace">
-        <div class="panel-title">
-          <div><span class="eyebrow">AUTHENTICATE</span><h3>Verify a document</h3></div>
-        </div>
-        <label for="hmac-verify-text">Document content to verify</label>
-        <input class="file-input" type="file" data-file-target="hmac-verify-text" aria-label="Choose a document file to verify HMAC">
-        <textarea id="hmac-verify-text" placeholder="Paste the original document content..."></textarea>
-        <label for="hmac-verify-key">Secret key (Base64)</label>
-        <textarea id="hmac-verify-key" placeholder="Paste the shared secret key..."></textarea>
-        <label for="hmac-verify-tag">Expected HMAC tag</label>
-        <textarea id="hmac-verify-tag" placeholder="Paste the expected 64-character HMAC..."></textarea>
-        <button type="button" class="primary" id="hmac-verify">Verify authentication</button>
-        <div class="inline-status hidden" id="hmac-verify-result" role="status" aria-live="polite"></div>
-      </div>
-    </section>
+            <label for="aes-key">Secret Key (Base64)</label>
+            <div class="secret-row">
+              <textarea id="aes-key" class="secret-field masked" readonly></textarea>
+              <div class="secret-actions">
+                <button type="button" class="secondary toggle-mask" data-mask-target="aes-key">Reveal</button>
+                <button type="button" class="secondary" data-copy="aes-key">Copy</button>
+              </div>
+            </div>
 
-    <footer>SecureDoc Academic Project <span>·</span> Educational cryptography demonstration <span>·</span> No documents are intentionally stored</footer>
-  </main>
+            <label>96-Bit Nonce (Base64)</label>
+            <div class="hash-value mono" id="aes-nonce"></div>
+
+            <label for="aes-ciphertext">Ciphertext + Authentication Tag (Base64)</label>
+            <textarea id="aes-ciphertext" class="mono" readonly></textarea>
+
+            <div class="actions">
+              <button type="button" class="primary" id="use-aes-package">Open in Decryption <span aria-hidden="true">→</span></button>
+              <button type="button" class="secondary" id="download-aes">Download Package (.json)</button>
+              <button type="button" class="secondary" id="copy-aes-package">Copy Package JSON</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DOCUMENT DECRYPTION -->
+      <section class="view" id="view-decryption">
+        <div class="intro">
+          <span class="eyebrow">PRACTICAL 03 · AUTHENTICATED DECRYPTION</span>
+          <h2>Document Decryption</h2>
+          <p>Restore an AES-256-GCM encrypted package. Decryption succeeds only when the key, nonce, and authentication tag match without tampering.</p>
+        </div>
+        <div class="workspace-card">
+          <div class="panel-title">
+            <div>
+              <span class="eyebrow">RESTORE &amp; VERIFY TAG</span>
+              <h3>Decrypt Encrypted Package</h3>
+            </div>
+            <div class="segmented" role="tablist" aria-label="Decryption input mode">
+              <button type="button" class="seg-btn active" data-decrypt-mode="json" role="tab" aria-selected="true">Package JSON / File</button>
+              <button type="button" class="seg-btn" data-decrypt-mode="manual" role="tab" aria-selected="false">Manual Key + Fields</button>
+            </div>
+          </div>
+
+          <div id="decrypt-mode-json">
+            <label for="aes-package-file">Upload encrypted package (.json)</label>
+            <div class="dropzone">
+              <input class="file-input" id="aes-package-file" type="file" accept=".json,application/json,text/plain" aria-label="Upload encrypted JSON package">
+              <span class="file-meta" id="aes-package-file-meta">Select a downloaded securedoc-encrypted-package.json or paste below.</span>
+            </div>
+            <label for="aes-package">Encrypted Package JSON</label>
+            <textarea id="aes-package" class="mono" placeholder='{"algorithm":"AES-256-GCM","key":"...","nonce":"...","ciphertext":"..."}'></textarea>
+          </div>
+
+          <div id="decrypt-mode-manual" class="hidden">
+            <label for="aes-dec-key">Secret Key (Base64)</label>
+            <input type="password" id="aes-dec-key" class="mono" placeholder="Paste 256-bit Base64 AES key...">
+            <label for="aes-dec-nonce">Nonce (Base64)</label>
+            <input type="text" id="aes-dec-nonce" class="mono" placeholder="Paste 96-bit Base64 nonce...">
+            <label for="aes-dec-ciphertext">Ciphertext (Base64)</label>
+            <textarea id="aes-dec-ciphertext" class="mono" placeholder="Paste Base64 ciphertext + tag..."></textarea>
+          </div>
+
+          <div class="actions">
+            <button type="button" class="primary" id="aes-decrypt">Decrypt Document <span aria-hidden="true">→</span></button>
+            <button type="button" class="secondary" id="clear-decrypt">Clear</button>
+          </div>
+
+          <div class="inline-status hidden" id="aes-decrypt-status" role="status" aria-live="polite"></div>
+
+          <div class="result hidden" id="aes-plain-result">
+            <div class="result-head">
+              <b>Restored Document</b>
+              <span class="status-pill good" id="aes-plain-bytes">0 bytes</span>
+            </div>
+            <label for="aes-plain">Decrypted Content</label>
+            <textarea id="aes-plain" readonly></textarea>
+            <div class="actions">
+              <button type="button" class="secondary" id="download-plain">Download Restored Document</button>
+              <button type="button" class="secondary" data-copy="aes-plain">Copy Text</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- DIGITAL SIGNATURE & RSA TOOLKIT -->
+      <section class="view" id="view-rsa">
+        <div class="intro">
+          <span class="eyebrow">PRACTICAL 04 · ASYMMETRIC CRYPTOGRAPHY</span>
+          <h2>Digital Signature &amp; RSA Toolkit</h2>
+          <p>Generate 2048-bit RSA key pairs on the server, sign documents with RSA-PSS (SHA-256), and encrypt short secrets with RSA-OAEP (SHA-256).</p>
+        </div>
+
+        <div class="workspace-card">
+          <div class="panel-title">
+            <div>
+              <span class="eyebrow">KEY MANAGEMENT</span>
+              <h3>RSA-2048 Key Pair</h3>
+            </div>
+            <div class="actions compact">
+              <button type="button" class="primary" id="rsa-generate">Generate Key Pair</button>
+              <button type="button" class="secondary" id="rsa-clear-keys">Clear Keys</button>
+            </div>
+          </div>
+          <div class="key-grid">
+            <div>
+              <label for="rsa-public">Public Key (SPKI PEM · Shareable)</label>
+              <textarea id="rsa-public" class="mono" placeholder="-----BEGIN PUBLIC KEY-----"></textarea>
+              <button type="button" class="secondary" data-copy="rsa-public">Copy Public Key</button>
+            </div>
+            <div>
+              <label for="rsa-private">Private Key (PKCS#8 PEM · Keep Secret)</label>
+              <textarea id="rsa-private" class="mono secret-field masked" placeholder="-----BEGIN PRIVATE KEY-----"></textarea>
+              <div class="actions compact">
+                <button type="button" class="secondary toggle-mask" data-mask-target="rsa-private">Reveal</button>
+                <button type="button" class="secondary" data-copy="rsa-private">Copy Private Key</button>
+              </div>
+            </div>
+          </div>
+          <div class="warning-box">Educational demo notice: keys are generated per request on the server and held only in this page's memory until cleared or refreshed.</div>
+        </div>
+
+        <div class="workspace-card">
+          <div class="panel-title">
+            <div>
+              <span class="eyebrow">RSA-PSS + SHA-256</span>
+              <h3>Sign &amp; Verify Document</h3>
+            </div>
+            <span class="tiny-pill">PSS PADDING</span>
+          </div>
+          <label for="rsa-sign-text">Document to sign or verify (max 10 MB)</label>
+          <div class="dropzone" data-dropzone="rsa-sign-text">
+            <input class="file-input" type="file" data-file-target="rsa-sign-text" aria-label="Choose a document file to sign or verify">
+            <span class="file-meta" id="rsa-sign-text-meta">No file attached — enter text below or attach a file.</span>
+          </div>
+          <textarea id="rsa-sign-text" placeholder="Enter exact document content to sign or verify..."></textarea>
+          <div class="actions">
+            <button type="button" class="primary" id="rsa-sign">Sign with Private Key</button>
+            <button type="button" class="secondary" id="rsa-verify">Verify with Public Key</button>
+            <button type="button" class="secondary" id="download-rsa-sig">Download Signature (.json)</button>
+          </div>
+          <label for="rsa-signature">Digital Signature (Base64)</label>
+          <textarea id="rsa-signature" class="mono" placeholder="Generated RSA-PSS signature appears here..."></textarea>
+          <div class="inline-status hidden" id="rsa-verify-result" role="status" aria-live="polite"></div>
+        </div>
+
+        <div class="workspace-card">
+          <div class="panel-title">
+            <div>
+              <span class="eyebrow">RSA-OAEP + SHA-256</span>
+              <h3>Encrypt &amp; Decrypt Short Message</h3>
+            </div>
+            <span class="tiny-pill">MAX 190 BYTES</span>
+          </div>
+          <label for="rsa-text">Short message (maximum 190 UTF-8 bytes)</label>
+          <textarea id="rsa-text" placeholder="Enter a short message or symmetric key snippet..."></textarea>
+          <small class="helper byte-counter" id="rsa-byte-count">0 / 190 bytes</small>
+          <div class="actions">
+            <button type="button" class="primary" id="rsa-encrypt">Encrypt with Public Key</button>
+            <button type="button" class="secondary" id="rsa-decrypt">Decrypt with Private Key</button>
+          </div>
+          <label for="rsa-cipher">Ciphertext (Base64)</label>
+          <textarea id="rsa-cipher" class="mono" placeholder="Encrypted message appears here..."></textarea>
+          <div class="result hidden" id="rsa-plain-result">
+            <label>Decrypted Message</label>
+            <div class="hash-value" id="rsa-plain"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VERIFY DOCUMENT -->
+      <section class="view" id="view-verify">
+        <div class="intro">
+          <span class="eyebrow">AUTHENTICITY &amp; INTEGRITY VERIFICATION</span>
+          <h2>Verify Document</h2>
+          <p>Independently verify any document against an RSA-PSS digital signature, an HMAC-SHA256 authentication tag, or an expected cryptographic digest.</p>
+        </div>
+
+        <div class="workspace-card">
+          <div class="panel-title">
+            <div>
+              <span class="eyebrow">VERIFICATION METHOD</span>
+              <h3>Select Verification Mode</h3>
+            </div>
+            <div class="segmented" role="tablist" aria-label="Verification method">
+              <button type="button" class="seg-btn active" data-verify-tab="rsa" role="tab" aria-selected="true">RSA-PSS Signature</button>
+              <button type="button" class="seg-btn" data-verify-tab="hmac" role="tab" aria-selected="false">HMAC-SHA256 Tag</button>
+              <button type="button" class="seg-btn" data-verify-tab="hash" role="tab" aria-selected="false">Hash Digest Compare</button>
+            </div>
+          </div>
+
+          <label for="verify-doc-text">Document to verify (max 10 MB)</label>
+          <div class="dropzone" data-dropzone="verify-doc-text">
+            <input class="file-input" type="file" data-file-target="verify-doc-text" aria-label="Choose a document file to verify">
+            <span class="file-meta" id="verify-doc-text-meta">No file attached — paste text or upload the document to verify.</span>
+          </div>
+          <textarea id="verify-doc-text" placeholder="Paste the document content to verify..."></textarea>
+
+          <div id="verify-panel-rsa">
+            <label for="verify-rsa-public">Signer Public Key (PEM)</label>
+            <textarea id="verify-rsa-public" class="mono" placeholder="-----BEGIN PUBLIC KEY-----"></textarea>
+            <label for="verify-rsa-sig">RSA-PSS Signature (Base64)</label>
+            <textarea id="verify-rsa-sig" class="mono" placeholder="Paste Base64 signature..."></textarea>
+            <button type="button" class="primary" id="verify-run-rsa">Verify Signature <span aria-hidden="true">→</span></button>
+          </div>
+
+          <div id="verify-panel-hmac" class="hidden">
+            <label for="verify-hmac-key">Shared Secret Key (Base64)</label>
+            <input type="password" id="verify-hmac-key" class="mono" placeholder="Paste 256-bit Base64 HMAC secret key...">
+            <label for="verify-hmac-tag">Expected HMAC-SHA256 Tag (64 hex chars)</label>
+            <input type="text" id="verify-hmac-tag" class="mono" placeholder="Paste 64-character hex HMAC tag...">
+            <button type="button" class="primary" id="verify-run-hmac">Verify HMAC Tag <span aria-hidden="true">→</span></button>
+          </div>
+
+          <div id="verify-panel-hash" class="hidden">
+            <label for="verify-hash-algo">Hash Algorithm</label>
+            <select id="verify-hash-algo">
+              <option value="sha256" selected>SHA-256 (Recommended · 64 hex chars)</option>
+              <option value="sha1">SHA-1 (Legacy academic demo only · 40 hex chars)</option>
+            </select>
+            <label for="verify-hash-expected">Expected Digest (Hex)</label>
+            <input type="text" id="verify-hash-expected" class="mono" placeholder="Paste expected SHA-256 or SHA-1 hexadecimal digest...">
+            <button type="button" class="primary" id="verify-run-hash">Compare Digest <span aria-hidden="true">→</span></button>
+          </div>
+
+          <div class="inline-status hidden" id="verify-unified-result" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- INTEGRITY CHECKER -->
+      <section class="view" id="view-integrity">
+        <div class="intro">
+          <span class="eyebrow">PRACTICAL 06 · MESSAGE DIGESTS</span>
+          <h2>Integrity Checker (SHA-256 &amp; SHA-1)</h2>
+          <p>Compute deterministic cryptographic fingerprints of any text or file. Even a single bit change produces a completely different digest.</p>
+        </div>
+
+        <div class="workspace-card">
+          <div class="panel-title">
+            <div>
+              <span class="eyebrow">GENERATE DIGESTS</span>
+              <h3>Calculate Document Hashes</h3>
+            </div>
+            <span class="tiny-pill">MEMORY-SAFE</span>
+          </div>
+
+          <label for="integrity-text">Document input or file upload (max 10 MB)</label>
+          <div class="dropzone" data-dropzone="integrity-text">
+            <input class="file-input" type="file" data-file-target="integrity-text" aria-label="Choose a document file for integrity check">
+            <span class="file-meta" id="integrity-text-meta">No file attached — type text below or select a file.</span>
+          </div>
+          <textarea id="integrity-text" placeholder="Paste or type document text to hash..."></textarea>
+
+          <div class="actions">
+            <button type="button" class="primary" id="hash-btn">Generate Digests <span aria-hidden="true">→</span></button>
+            <button type="button" class="secondary clear-target" data-clear-target="integrity-text">Clear Input</button>
+          </div>
+
+          <div class="result hidden" id="hash-result">
+            <div class="result-head">
+              <b>Digest Results</b>
+              <span class="status-pill good" id="hash-bytes">0 bytes processed</span>
+            </div>
+
+            <label>SHA-256 <span class="recommended">RECOMMENDED FOR SECURITY</span></label>
+            <div class="hash-row">
+              <div class="hash-value mono" id="sha256-value"></div>
+              <button type="button" class="secondary copy-text" data-copy-text="sha256-value">Copy</button>
+            </div>
+
+            <label>SHA-1 <span class="legacy">LEGACY / ACADEMIC DEMO ONLY</span></label>
+            <div class="hash-row">
+              <div class="hash-value mono" id="sha1-value"></div>
+              <button type="button" class="secondary copy-text" data-copy-text="sha1-value">Copy</button>
+            </div>
+
+            <div class="warning-box">Security note: SHA-1 has practical collision vulnerabilities and is included strictly for Practical 06 syllabus demonstration. Always use SHA-256 or stronger for production integrity checks.</div>
+          </div>
+        </div>
+
+        <div class="workspace-card">
+          <div class="panel-title">
+            <div>
+              <span class="eyebrow">CHANGE DETECTION</span>
+              <h3>Compare Against Expected SHA-256</h3>
+            </div>
+          </div>
+          <label for="integrity-expected">Expected SHA-256 Digest (64 hex characters)</label>
+          <input type="text" id="integrity-expected" class="mono" placeholder="Paste an expected SHA-256 digest to check if the document above changed...">
+          <div class="actions">
+            <button type="button" class="primary" id="integrity-compare-btn">Compare Integrity <span aria-hidden="true">→</span></button>
+          </div>
+          <div class="inline-status hidden" id="integrity-compare-result" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- HMAC AUTHENTICATION -->
+      <section class="view" id="view-authentication">
+        <div class="intro">
+          <span class="eyebrow">PRACTICAL 08 · MESSAGE AUTHENTICATION</span>
+          <h2>HMAC-SHA256 Authentication</h2>
+          <p>Authenticate document integrity and origin using a 256-bit shared secret key and constant-time digest comparison.</p>
+        </div>
+
+        <div class="workspace-card">
+          <div class="panel-title">
+            <div>
+              <span class="eyebrow">CREATE AUTHENTICATION TAG</span>
+              <h3>Generate Key &amp; HMAC-SHA256</h3>
+            </div>
+            <span class="tiny-pill">256-BIT SECRET</span>
+          </div>
+          <label for="hmac-text">Document input or file upload (max 10 MB)</label>
+          <div class="dropzone" data-dropzone="hmac-text">
+            <input class="file-input" type="file" data-file-target="hmac-text" aria-label="Choose a document file for HMAC generation">
+            <span class="file-meta" id="hmac-text-meta">No file attached — type text below or select a file.</span>
+          </div>
+          <textarea id="hmac-text" placeholder="Enter document content to authenticate..."></textarea>
+
+          <label for="hmac-custom-key">Optional existing secret key (Base64, ≥ 32 bytes) — leave blank to auto-generate</label>
+          <input type="password" id="hmac-custom-key" class="mono" placeholder="Leave blank to generate a fresh random 256-bit key...">
+
+          <div class="actions">
+            <button type="button" class="primary" id="hmac-generate">Generate HMAC-SHA256 <span aria-hidden="true">→</span></button>
+          </div>
+
+          <div class="result hidden" id="hmac-result">
+            <div class="result-head">
+              <b>Authentication Record</b>
+              <span class="status-pill good">HMAC-SHA256</span>
+            </div>
+            <label for="hmac-key">Secret Key (Base64 · Keep Private)</label>
+            <div class="secret-row">
+              <textarea id="hmac-key" class="secret-field masked" readonly></textarea>
+              <div class="secret-actions">
+                <button type="button" class="secondary toggle-mask" data-mask-target="hmac-key">Reveal</button>
+                <button type="button" class="secondary" data-copy="hmac-key">Copy</button>
+              </div>
+            </div>
+            <label for="hmac-tag">HMAC-SHA256 Tag (Hex)</label>
+            <textarea id="hmac-tag" class="mono" readonly></textarea>
+            <div class="actions">
+              <button type="button" class="secondary" id="download-hmac">Download Record (.json)</button>
+              <button type="button" class="secondary" id="use-hmac-verify">Load into Verifier</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="workspace-card">
+          <div class="panel-title">
+            <div>
+              <span class="eyebrow">CONSTANT-TIME CHECK</span>
+              <h3>Verify HMAC-SHA256</h3>
+            </div>
+          </div>
+          <label for="hmac-verify-text">Document content to verify</label>
+          <div class="dropzone" data-dropzone="hmac-verify-text">
+            <input class="file-input" type="file" data-file-target="hmac-verify-text" aria-label="Choose a document file to verify HMAC">
+            <span class="file-meta" id="hmac-verify-text-meta">No file attached — paste document text or select a file.</span>
+          </div>
+          <textarea id="hmac-verify-text" placeholder="Paste the original document content..."></textarea>
+          <label for="hmac-verify-key">Shared Secret Key (Base64)</label>
+          <textarea id="hmac-verify-key" class="mono secret-field masked" placeholder="Paste the shared Base64 secret key..."></textarea>
+          <div class="actions compact">
+            <button type="button" class="secondary toggle-mask" data-mask-target="hmac-verify-key">Reveal Key</button>
+          </div>
+          <label for="hmac-verify-tag">Expected HMAC-SHA256 Tag</label>
+          <textarea id="hmac-verify-tag" class="mono" placeholder="Paste the expected 64-character hex HMAC..."></textarea>
+          <button type="button" class="primary" id="hmac-verify">Verify Authentication <span aria-hidden="true">→</span></button>
+          <div class="inline-status hidden" id="hmac-verify-result" role="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <!-- SECURITY ACTIVITY -->
+      <section class="view" id="view-activity">
+        <div class="intro">
+          <span class="eyebrow">BACKEND AUDIT TELEMETRY</span>
+          <h2>Security Activity</h2>
+          <p>Live log of cryptographic operations processed by the Flask backend during this session. Document contents and secret keys are never recorded.</p>
+        </div>
+
+        <div class="workspace-card wide">
+          <div class="panel-title wrap">
+            <div class="segmented" role="tablist" aria-label="Filter security activity">
+              <button type="button" class="seg-btn active" data-activity-filter="all">All Events</button>
+              <button type="button" class="seg-btn" data-activity-filter="success">Passed</button>
+              <button type="button" class="seg-btn" data-activity-filter="failure">Failures</button>
+            </div>
+            <div class="actions compact">
+              <button type="button" class="secondary" id="refresh-activity">Refresh</button>
+              <button type="button" class="secondary" id="clear-activity">Clear Activity</button>
+            </div>
+          </div>
+
+          <div class="table-wrap" id="activity-table-wrap">
+            <div class="empty-state">
+              <b>No security events recorded yet</b>
+              <p>Run encryption, decryption, signing, hashing, or HMAC verification to populate live telemetry.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section class="view" id="view-settings">
+        <div class="intro">
+          <span class="eyebrow">SECURITY POLICY &amp; PREFERENCES</span>
+          <h2>Settings</h2>
+          <p>Inspect active server-side cryptographic limits and manage local browser workspace state.</p>
+        </div>
+
+        <div class="bottom-grid equal">
+          <div class="panel">
+            <div class="panel-title">
+              <div>
+                <span class="eyebrow">SERVER RUNTIME POLICY</span>
+                <h3>Active Backend Limits</h3>
+              </div>
+              <span class="tiny-pill">READ-ONLY</span>
+            </div>
+            <div class="config-list" id="config-list">
+              <div class="config-row"><span>Max Upload Size</span><b id="cfg-max-file">10 MB</b></div>
+              <div class="config-row"><span>AES Cipher</span><b id="cfg-aes">AES-256-GCM</b></div>
+              <div class="config-row"><span>RSA Minimum Key Size</span><b id="cfg-rsa-bits">2048 bits</b></div>
+              <div class="config-row"><span>RSA-OAEP Cap</span><b id="cfg-rsa-bytes">190 UTF-8 bytes</b></div>
+              <div class="config-row"><span>HMAC Standard</span><b id="cfg-hmac">HMAC-SHA256</b></div>
+              <div class="config-row"><span>Storage Mode</span><b id="cfg-storage">In-memory only</b></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">
+              <div>
+                <span class="eyebrow">BROWSER SESSION HYGIENE</span>
+                <h3>Workspace Controls</h3>
+              </div>
+            </div>
+            <label class="switch-row">
+              <input type="checkbox" id="pref-mask-secrets" checked>
+              <span>Mask private keys and symmetric secrets by default in UI fields</span>
+            </label>
+            <div class="actions" style="margin-top:18px;">
+              <button type="button" class="primary" id="wipe-browser-state">Clear All Inputs &amp; Keys</button>
+              <button type="button" class="secondary" id="reset-telemetry-btn">Reset Backend Activity</button>
+            </div>
+            <div class="warning-box" style="margin-top:16px;">Clearing inputs removes any generated keys, ciphertexts, and attached file buffers currently held in browser memory.</div>
+          </div>
+        </div>
+      </section>
+
+      <footer>
+        SecureDoc Academic Cryptography Suite <span>·</span> AES-256-GCM · RSA-2048 · SHA-256 · HMAC-SHA256 <span>·</span> No documents or keys persisted
+      </footer>
+    </main>
+  </div>
 </div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
