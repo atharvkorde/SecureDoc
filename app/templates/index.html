@@ -3,20 +3,21 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f9fc">
-  <title>SecureDoc — Document Security Workspace</title>
+  <meta name="theme-color" content="#060504">
+  <meta name="description" content="SecureDoc — secure documents with AES, RSA, SHA and HMAC cryptography."><title>SecureDoc — Secure Document Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/theme.css">
   <script defer src="/static/app.js"></script>
 </head>
 <body>
 <div class="shell">
   <aside class="sidebar" aria-label="Workspace navigation">
     <a class="brand" href="#overview" data-go="overview">
-      <span class="brand-mark" aria-hidden="true">S</span>
-      <span>secure<span class="brand-blue">doc</span><small>DOCUMENT SECURITY</small></span>
+      <span class="brand-mark" aria-hidden="true">✳</span>
+      <span>secure<span class="brand-blue">doc</span><small>DOCUMENT AUTHENTICATION</small></span>
     </a>
     <div class="nav-label">WORKSPACE</div>
     <button type="button" class="nav-item active" data-view="overview" aria-label="Overview" title="Overview" aria-current="page"><span aria-hidden="true">◫</span> Overview</button>
@@ -35,7 +36,7 @@
   <main class="main">
     <header class="topbar">
       <div>
-        <span class="eyebrow">CRYPTOGRAPHY LAB / PROJECT</span>
+        <span class="eyebrow">SECURE DOCUMENT AUTHENTICATION / LAB</span>
         <h1 id="page-title">Document security overview</h1>
       </div>
       <div class="top-actions">
@@ -47,10 +48,10 @@
     <section class="view active" id="view-overview">
       <div class="hero">
         <div>
-          <span class="hero-kicker">YOUR DOCUMENTS. YOUR CONTROL.</span>
-          <h2>Protect what<br>matters <em>most.</em></h2>
-          <p>Explore four cryptographic techniques in one secure, easy-to-use workspace. Encrypt documents, verify integrity and authenticate content.</p>
-          <button type="button" class="primary" data-go="encryption">Secure a document <span aria-hidden="true">→</span></button>
+          <span class="hero-kicker"><span class="live-dot"></span> PRIVATE BY DESIGN · CRYPTOGRAPHY LAB</span>
+          <h2>Trust every file.<br>Verify every <em>byte.</em></h2>
+          <p>A focused workspace for document encryption, digital signatures and integrity checks — powered by four essential cryptographic techniques.</p>
+          <button type="button" class="primary" data-go="encryption">Explore the toolkit <span aria-hidden="true">→</span></button>
         </div>
         <div class="hero-art" aria-hidden="true">
           <div class="orbit orbit-one"></div>
@@ -65,9 +66,9 @@
       <div class="section-heading">
         <div>
           <span class="eyebrow">CRYPTOGRAPHY TOOLKIT</span>
-          <h2>One workspace. Four protections.</h2>
+          <h2>One workspace. Four layers of trust.</h2>
         </div>
-        <span class="muted">Mapped to your practical syllabus</span>
+        <span class="muted">Built around your cryptography practicals</span>
       </div>
 
       <div class="tool-grid">
