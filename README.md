@@ -1,24 +1,23 @@
 # SecureDoc — Secure Document Authentication System
 
-A college cryptography practical project that combines four syllabus concepts in one responsive web application:
+A college cryptography practical project that combines four core security modules in one responsive dark-theme web application:
 
-| Practical | Concept | SecureDoc implementation |
+| Module | Concept | SecureDoc implementation |
 |---|---|---|
-| 03 | Symmetric-key cryptography | AES-256-GCM authenticated document encryption/decryption |
-| 04 | RSA public-key cryptography | RSA-2048+ keys, OAEP/SHA-256 encryption and PSS/SHA-256 digital signatures |
-| 06 | Message digest | SHA-1 legacy academic demonstration and SHA-256 integrity digest |
-| 08 | Message authentication | HMAC-SHA256 generation and constant-time verification |
+| Document Integrity | Message digest (Practical 06) | SHA-1 legacy academic demonstration and SHA-256 integrity digest & comparison |
+| RSA Encryption & Decryption | Public-key cryptography (Practical 04) | RSA-2048 key-pair generation and RSA-OAEP (SHA-256) short-message encryption/decryption |
+| Digital Signature | Asymmetric signatures (Practical 04) | RSA-PSS (SHA-256) document signing and verification |
+| HMAC Authentication | Message authentication (Practical 08) | HMAC-SHA256 generation and constant-time verification |
 
 ## Features
 
-- Dark obsidian & warm-gold security dashboard with dedicated pages for **Dashboard**, **Document Encryption**, **Document Decryption**, **Digital Signature**, **Verify Document**, **Integrity Checker**, **HMAC Authentication**, **Security Activity**, and **Settings**, plus a collapsible mobile navigation drawer.
-- Real-time backend telemetry counters (`Total Documents Processed`, `Encrypted Documents`, `Verified Documents`, `Integrity Failures`) and non-sensitive activity log (no keys, plaintexts, or documents persisted).
+- Dark obsidian & warm-gold security dashboard with dedicated pages for **Dashboard**, **Integrity Checker**, **RSA & Digital Signature**, **Verify Document**, **HMAC Authentication**, **Security Activity**, and **Settings**, plus a collapsible mobile navigation drawer.
+- Real-time backend telemetry counters (`Total Documents Processed`, `Digital Signatures`, `Verified Documents`, `Integrity Failures`) and non-sensitive activity log (no keys, plaintexts, or documents persisted).
 - Drag-and-drop or file-picker upload (up to 10 MB raw file size) with filename path-traversal validation and in-memory processing.
-- **AES-256-GCM** generates a fresh random 256-bit key and 96-bit nonce per encryption, verifying authentication tags on decryption and supporting JSON package file upload or manual fields.
 - **RSA-2048** key-pair generation, **RSA-OAEP (SHA-256)** encryption/decryption for short messages (up to 190 UTF-8 bytes with live byte counter), and **RSA-PSS (SHA-256)** digital signatures. Enforces a minimum 2048-bit key size.
 - **SHA-1** (explicitly labeled as legacy/insecure for academic demonstration only) and **SHA-256** document digests, plus constant-time digest comparison.
 - **HMAC-SHA256** using a 256-bit CSPRNG secret (`secrets.token_bytes`) or custom ≥256-bit key and constant-time comparison (`hmac.compare_digest`).
-- Downloadable encrypted JSON package, RSA signature record JSON, HMAC record JSON, and restored document (`.txt` for UTF-8 text, `.bin` for binary data), plus UI masking toggles for sensitive keys.
+- Downloadable RSA signature record JSON and HMAC record JSON, plus UI masking toggles for sensitive keys.
 - Security headers (`X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, strict `Content-Security-Policy`, `Cache-Control: no-store` on `/api/*`, and `no-cache` on static/HTML assets), JSON error handlers, upload-size limits, and automated tests.
 
 ## Requirements
@@ -66,10 +65,8 @@ python -m pytest -v
 | `/health` | `GET` | Health check returning `{"status": "ok", "service": "SecureDoc"}` |
 | `/api/hash` | `POST` | Computes SHA-1 (legacy demo) and SHA-256 digests |
 | `/api/hash/compare` | `POST` | Compares document bytes against an expected SHA-256/SHA-1 digest |
-| `/api/aes/encrypt` | `POST` | Encrypts text/bytes with AES-256-GCM |
-| `/api/aes/decrypt` | `POST` | Authenticates and decrypts an AES-256-GCM package |
 | `/api/rsa/keys` | `POST` | Generates an RSA-2048 key pair (PKCS#8 + SPKI PEM) |
-| `/api/rsa/encrypt` | `POST` | Encrypts up to 190 bytes using RSA-OAEP (SHA-256) |
+| `/api/rsa/encrypt` | `POST` | Encrypts up to 190 UTF-8 bytes using RSA-OAEP (SHA-256) |
 | `/api/rsa/decrypt` | `POST` | Decrypts RSA-OAEP (SHA-256) ciphertext |
 | `/api/rsa/sign` | `POST` | Signs document bytes using RSA-PSS (SHA-256) |
 | `/api/rsa/verify` | `POST` | Verifies an RSA-PSS (SHA-256) signature |
@@ -83,17 +80,16 @@ python -m pytest -v
 
 ## Demonstration guide
 
-1. **Integrity:** Open **Integrity check**, type text or attach a file, and generate SHA-1 and SHA-256. Change one character and run it again to observe the avalanche effect.
-2. **AES:** Attach or type a document and encrypt it. Save the key and download the encrypted package JSON. Paste that JSON in the decrypt panel to restore the document. Modify the ciphertext to see GCM authentication fail.
-3. **RSA:** Generate a key pair and keep the private key confidential. Encrypt a short message (≤ 190 UTF-8 bytes) with the public key and decrypt it with the private key. For signatures, sign the exact document with the private key, then verify with the public key. Change the document to make verification fail.
-4. **HMAC:** Generate a random secret and tag. Paste the exact document, key, and tag in the verification panel. Change the document or key to see verification fail.
+1. **Integrity:** Open **Integrity Checker**, type text or attach a file, and generate SHA-1 and SHA-256. Change one character and run it again to observe the avalanche effect, or use **Compare Against Expected SHA-256**.
+2. **RSA Encryption & Decryption:** Open **RSA & Digital Signature**, generate a 2048-bit key pair, enter a short message (≤ 190 UTF-8 bytes), encrypt with the public key using RSA-OAEP (SHA-256), and decrypt with the private key.
+3. **Digital Signatures:** Sign a text or uploaded file with the private key using RSA-PSS (SHA-256), then verify with the public key (or on the **Verify Document** page). Modify the document to see verification fail.
+4. **HMAC:** Generate a random 256-bit secret and tag. Paste the exact document, key, and tag in the verification panel (or click **Load into Verifier**). Change the document or key to see verification fail.
 
 ## Security notes and limitations
 
 - **SHA-1 is included only for the syllabus demonstration.** SHA-1 has known collision weaknesses and must not be used for modern security. Use SHA-256 or stronger hashes for integrity workflows.
-- **AES-GCM** protects confidentiality and authenticates ciphertext. Never reuse a nonce with the same AES key. SecureDoc generates a fresh 256-bit key and 96-bit nonce for every encryption.
-- **RSA** is not suitable for encrypting large files directly. This project caps the direct RSA-OAEP encryption demo at 190 UTF-8 bytes and rejects keys smaller than 2048 bits; use hybrid encryption (AES-GCM for data and RSA-OAEP to wrap the AES key) for production file encryption.
-- **Educational key handling:** RSA private keys and symmetric/HMAC secret keys are returned to the browser for this local demonstration. The server does not persist them, and API responses carry `Cache-Control: no-store`, but production systems should use client-side key generation or a dedicated key-management service (KMS/HSM).
+- **RSA** is not suitable for encrypting large files directly. This project caps the direct RSA-OAEP encryption demo at 190 UTF-8 bytes and rejects keys smaller than 2048 bits.
+- **Educational key handling:** RSA private keys and HMAC secret keys are returned to the browser for this local demonstration. The server does not persist them, and API responses carry `Cache-Control: no-store`, but production systems should use client-side key generation or a dedicated key-management service (KMS/HSM).
 - **HMAC** keys are shared secrets. Anyone holding the key can create valid tags. Never send keys over untrusted channels; use TLS and a secure key exchange/storage design.
 - **Deployment considerations:** The API processes uploaded bytes in memory only. If deployed beyond localhost, use HTTPS (HSTS via reverse proxy), a strong unique `FLASK_SECRET_KEY`, rate limiting, CSRF protection for any session-authenticated routes, and a production WSGI server such as Gunicorn rather than Flask's development server.
 - Do not use real confidential documents or production secrets in this academic demonstration.

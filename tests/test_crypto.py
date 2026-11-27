@@ -21,45 +21,6 @@ def test_hashes_match_stdlib_and_edge_cases():
         assert c.sha256_digest(data) == hashlib.sha256(data).hexdigest()
 
 
-def test_aes_round_trip_variants_and_unique_keys_nonces():
-    pkg1 = c.aes_encrypt(b"confidential")
-    pkg2 = c.aes_encrypt(b"confidential")
-    assert pkg1["algorithm"] == "AES-256-GCM"
-    assert len(base64.b64decode(pkg1["key"])) == 32
-    assert len(base64.b64decode(pkg1["nonce"])) == 12
-    assert pkg1["key"] != pkg2["key"]
-    assert pkg1["nonce"] != pkg2["nonce"]
-    assert pkg1["ciphertext"] != pkg2["ciphertext"]
-
-    for payload in [b"", b"confidential", "Unicode 🔐 text".encode("utf-8"), bytes(range(256)), b"B" * 200_000]:
-        pkg = c.aes_encrypt(payload)
-        assert c.aes_decrypt(pkg["key"], pkg["nonce"], pkg["ciphertext"]) == payload
-
-
-def test_aes_invalid_inputs_and_tamper():
-    package = c.aes_encrypt(b"confidential")
-    bad_ct = bytearray(base64.b64decode(package["ciphertext"]))
-    bad_ct[-1] ^= 1
-    with pytest.raises(ValueError, match="Authentication failed"):
-        c.aes_decrypt(package["key"], package["nonce"], base64.b64encode(bad_ct).decode())
-
-    other = c.aes_encrypt(b"other")
-    with pytest.raises(ValueError, match="Authentication failed"):
-        c.aes_decrypt(other["key"], package["nonce"], package["ciphertext"])
-
-    with pytest.raises(ValueError, match="32-byte key and 12-byte nonce"):
-        c.aes_decrypt(c.b64e(b"short-16-bytes!!"), package["nonce"], package["ciphertext"])
-
-    with pytest.raises(ValueError, match="32-byte key and 12-byte nonce"):
-        c.aes_decrypt(package["key"], c.b64e(b"badnonce"), package["ciphertext"])
-
-    with pytest.raises(ValueError, match="Ciphertext is required"):
-        c.aes_decrypt(package["key"], package["nonce"], "")
-
-    with pytest.raises(ValueError, match="Invalid Base64"):
-        c.aes_decrypt("not-base64!!!", package["nonce"], package["ciphertext"])
-
-
 def test_rsa_encrypt_decrypt_boundary_and_signatures():
     pair = c.rsa_generate()
     pub = c.load_public(pair["public_key"])
@@ -71,7 +32,7 @@ def test_rsa_encrypt_decrypt_boundary_and_signatures():
         cipher = c.rsa_encrypt(pair["public_key"], msg)
         assert c.rsa_decrypt(pair["private_key"], cipher) == msg
 
-    with pytest.raises(ValueError, match="up to 190 bytes"):
+    with pytest.raises(ValueError, match="up to 190 UTF-8 bytes"):
         c.rsa_encrypt(pair["public_key"], b"x" * (c.MAX_RSA_MESSAGE + 1))
 
     doc = "Signed document content — 📄".encode("utf-8")

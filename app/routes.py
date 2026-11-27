@@ -96,7 +96,7 @@ def get_config():
         max_rsa_bytes=crypto.MAX_RSA_MESSAGE,
         rsa_min_bits=crypto.MIN_RSA_KEY_BITS,
         rsa_max_bits=crypto.MAX_RSA_KEY_BITS,
-        aes_algorithm="AES-256-GCM",
+        rsa_algorithm="RSA-OAEP / RSA-PSS (SHA-256)",
         hmac_algorithm="HMAC-SHA256",
         sha1_legacy_only=True,
         storage_mode="In-memory only (zero server persistence)",
@@ -154,52 +154,6 @@ def compare_hash():
         if match
         else "Integrity warning: document hash does not match the expected digest.",
     )
-
-
-@api.post("/aes/encrypt")
-def aes_encrypt():
-    data = payload()
-    raw = document_bytes(data)
-    encrypted = crypto.aes_encrypt(raw)
-    _telemetry().record(
-        operation="Document Encrypt",
-        algorithm="AES-256-GCM",
-        success=True,
-        byte_count=len(raw),
-        detail=_file_detail(data, "Text encrypted"),
-        category="encrypt",
-    )
-    return jsonify(encrypted)
-
-
-@api.post("/aes/decrypt")
-def aes_decrypt():
-    data = payload()
-    try:
-        plain = crypto.aes_decrypt(data.get("key", ""), data.get("nonce", ""), data.get("ciphertext", ""))
-    except ValueError as exc:
-        _telemetry().record(
-            operation="Document Decrypt",
-            algorithm="AES-256-GCM",
-            success=False,
-            byte_count=0,
-            detail=str(exc),
-            category="decrypt",
-        )
-        raise
-    try:
-        text = plain.decode("utf-8")
-    except UnicodeDecodeError:
-        text = None
-    _telemetry().record(
-        operation="Document Decrypt",
-        algorithm="AES-256-GCM",
-        success=True,
-        byte_count=len(plain),
-        detail="GCM tag verified and decrypted",
-        category="decrypt",
-    )
-    return jsonify(document=text, document_base64=crypto.b64e(plain), bytes=len(plain))
 
 
 @api.post("/rsa/keys")

@@ -2,12 +2,10 @@
 import base64
 import hashlib
 import hmac
-import os
 import secrets
-from cryptography.exceptions import InvalidSignature, InvalidTag
+from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 MAX_RSA_MESSAGE = 190  # conservative limit for RSA-2048 OAEP/SHA-256
 MIN_RSA_KEY_BITS = 2048
@@ -35,25 +33,6 @@ def sha1_digest(data: bytes) -> str:
 
 def sha256_digest(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
-
-
-def aes_encrypt(data: bytes) -> dict:
-    key = AESGCM.generate_key(bit_length=256)
-    nonce = os.urandom(12)
-    ciphertext = AESGCM(key).encrypt(nonce, data, None)
-    return {"algorithm": "AES-256-GCM", "key": b64e(key), "nonce": b64e(nonce), "ciphertext": b64e(ciphertext)}
-
-
-def aes_decrypt(key_text: str, nonce_text: str, ciphertext_text: str) -> bytes:
-    key, nonce, ciphertext = b64d(key_text), b64d(nonce_text), b64d(ciphertext_text)
-    if len(key) != 32 or len(nonce) != 12:
-        raise ValueError("AES-256-GCM requires a 32-byte key and 12-byte nonce.")
-    if not ciphertext:
-        raise ValueError("Ciphertext is required.")
-    try:
-        return AESGCM(key).decrypt(nonce, ciphertext, None)
-    except InvalidTag as exc:
-        raise ValueError("Authentication failed: data or key was modified.") from exc
 
 
 def rsa_generate() -> dict:
@@ -107,7 +86,7 @@ def rsa_encrypt(public_pem: str, data: bytes) -> str:
     if not isinstance(data, (bytes, bytearray)):
         raise ValueError("Message bytes are required.")
     if len(data) > MAX_RSA_MESSAGE:
-        raise ValueError("RSA demo accepts up to 190 bytes. Use AES for larger documents.")
+        raise ValueError("RSA demo accepts up to 190 UTF-8 bytes.")
     encrypted = load_public(public_pem).encrypt(
         bytes(data),
         padding.OAEP(mgf=padding.MGF1(algorithm=hashes.SHA256()), algorithm=hashes.SHA256(), label=None),

@@ -65,29 +65,12 @@ def test_api_hash_text_empty_unicode_binary_and_errors(client):
     assert client.post("/api/hash", json={"document": 12345}).status_code == 400
 
 
-def test_api_aes_text_and_binary_round_trips(client):
-    enc = client.post("/api/aes/encrypt", json={"document": "Top secret 🌍"})
-    assert enc.status_code == 200
-    pkg = enc.get_json()
-    assert pkg["algorithm"] == "AES-256-GCM"
-
-    dec = client.post("/api/aes/decrypt", json=pkg)
-    assert dec.status_code == 200
-    assert dec.get_json()["document"] == "Top secret 🌍"
-
-    binary = b"\x89PNG\r\n\x1a\n\x00\xff"
-    enc_bin = client.post("/api/aes/encrypt", json={"document_base64": base64.b64encode(binary).decode()})
-    assert enc_bin.status_code == 200
-    dec_bin = client.post("/api/aes/decrypt", json=enc_bin.get_json())
-    assert dec_bin.status_code == 200
-    assert dec_bin.get_json()["document"] is None
-    assert base64.b64decode(dec_bin.get_json()["document_base64"]) == binary
-
-    tampered = dict(pkg)
-    tampered["ciphertext"] = c.b64e(b"0" * 32)
-    bad = client.post("/api/aes/decrypt", json=tampered)
-    assert bad.status_code == 400
-    assert "Authentication failed" in bad.get_json()["error"]
+def test_removed_aes_endpoints_return_404(client):
+    for method in ("post", "get"):
+        for path in ("/api/aes/encrypt", "/api/aes/decrypt"):
+            res = getattr(client, method)(path, json={"document": "hello"}) if method == "post" else client.get(path)
+            assert res.status_code == 404
+            assert res.is_json
 
 
 def test_api_rsa_full_workflow_and_validation(client):
@@ -188,8 +171,10 @@ def test_api_metrics_activity_config_hash_compare_and_filename_safety(client):
 
     cfg = client.get("/api/config")
     assert cfg.status_code == 200
-    assert cfg.get_json()["max_file_bytes"] == 10 * 1024 * 1024
-    assert cfg.get_json()["rsa_min_bits"] == 2048
+    cfg_json = cfg.get_json()
+    assert cfg_json["max_file_bytes"] == 10 * 1024 * 1024
+    assert cfg_json["rsa_min_bits"] == 2048
+    assert "aes_algorithm" not in cfg_json
 
     # Path traversal in optional filename metadata is rejected
     bad_name = client.post("/api/hash", json={"document": "hi", "filename": "../../etc/passwd"})
@@ -197,9 +182,11 @@ def test_api_metrics_activity_config_hash_compare_and_filename_safety(client):
     assert "path" in bad_name.get_json()["error"].lower()
 
     # Perform real operations and verify metrics & activity update
-    enc = client.post("/api/aes/encrypt", json={"document": "secret", "filename": "report.txt"}).get_json()
-    dec_bad = client.post("/api/aes/decrypt", json={**enc, "ciphertext": c.b64e(b"0" * 32)})
-    assert dec_bad.status_code == 400
+    keys = client.post("/api/rsa/keys", json={}).get_json()
+    sig = client.post("/api/rsa/sign", json={"private_key": keys["private_key"], "document": "secret", "filename": "report.txt"}).get_json()["signature"]
+    ver_bad = client.post("/api/rsa/verify", json={"public_key": keys["public_key"], "document": "tampered", "signature": sig})
+    assert ver_bad.status_code == 200
+    assert ver_bad.get_json()["valid"] is False
 
     digest = c.sha256_digest(b"hello")
     cmp_ok = client.post("/api/hash/compare", json={"document": "hello", "algorithm": "sha256", "expected_hash": digest})
@@ -214,14 +201,14 @@ def test_api_metrics_activity_config_hash_compare_and_filename_safety(client):
     assert bad_hex.status_code == 400
 
     act = client.get("/api/activity").get_json()
-    assert act["metrics"]["total_processed"] == 4
-    assert act["metrics"]["encrypted_documents"] == 1
+    assert act["metrics"]["total_processed"] == 5
+    assert act["metrics"]["signatures_created"] == 1
     assert act["metrics"]["verified_documents"] == 1
     assert act["metrics"]["integrity_failures"] == 2
-    assert len(act["events"]) == 4
+    assert len(act["events"]) == 5
     # Ensure secrets/keys/plaintexts are never stored in activity events
     serialized = str(act["events"])
-    assert enc["key"] not in serialized
+    assert keys["private_key"] not in serialized
     assert "secret" not in serialized
 
     cleared = client.post("/api/activity/clear", json={})

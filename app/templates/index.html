@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0c10">
-  <meta name="description" content="SecureDoc — secure documents with AES-256-GCM, RSA-2048, SHA-256, and HMAC-SHA256 cryptography.">
+  <meta name="description" content="SecureDoc — secure documents with SHA-1/SHA-256 integrity digests, RSA-2048 encryption &amp; digital signatures, and HMAC-SHA256 authentication.">
   <title>SecureDoc — Document Security &amp; Authentication</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -38,25 +38,17 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
         <span>Dashboard</span>
       </button>
-      <button type="button" class="nav-item" data-view="encryption">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
-        <span>Document Encryption</span>
-      </button>
-      <button type="button" class="nav-item" data-view="decryption">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.5-1.9"/></svg>
-        <span>Document Decryption</span>
+      <button type="button" class="nav-item" data-view="integrity">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>
+        <span>Integrity Checker</span>
       </button>
       <button type="button" class="nav-item" data-view="rsa">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-        <span>Digital Signature</span>
+        <span>RSA &amp; Digital Signature</span>
       </button>
       <button type="button" class="nav-item" data-view="verify">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 2l7 3v6c0 5-3.4 9.3-7 11-3.6-1.7-7-6-7-11V5l7-3z"/><path d="M9.5 12l1.8 1.8L15 10"/></svg>
         <span>Verify Document</span>
-      </button>
-      <button type="button" class="nav-item" data-view="integrity">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>
-        <span>Integrity Checker</span>
       </button>
       <button type="button" class="nav-item" data-view="authentication">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M21 2l-2 2m-7.6 7.6a5.5 5.5 0 11-7.8 7.8 5.5 5.5 0 017.8-7.8z"/><path d="M15.5 7.5l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
@@ -142,9 +134,9 @@
           <div class="hero-content">
             <span class="hero-kicker"><span class="live-dot" aria-hidden="true"></span> CRYPTOGRAPHY SUITE · LOCAL VERIFICATION LAB</span>
             <h2>Protect documents.<br>Authenticate every <em>byte.</em></h2>
-            <p>Encrypt confidential files with AES-256-GCM, sign with RSA-2048 PSS, verify SHA-256 integrity digests, and validate HMAC-SHA256 authentication codes in one workspace.</p>
+            <p>Verify document integrity with SHA-256 &amp; SHA-1 digests, sign with RSA-2048 PSS, encrypt short messages with RSA-OAEP, and validate HMAC-SHA256 authentication codes in one workspace.</p>
             <div class="hero-actions">
-              <button type="button" class="primary" data-go="encryption">Encrypt Document <span aria-hidden="true">→</span></button>
+              <button type="button" class="primary" data-go="rsa">Open RSA Toolkit <span aria-hidden="true">→</span></button>
               <button type="button" class="secondary" data-go="verify">Verify Document</button>
             </div>
           </div>
@@ -154,7 +146,7 @@
             <div class="shield">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l7 3v6c0 5-3.4 9.3-7 11-3.6-1.7-7-6-7-11V5l7-3z"/><path d="M9 12l2 2 4-4"/></svg>
             </div>
-            <div class="float-card card-a"><span>SYMMETRIC</span><b>AES-256-GCM</b></div>
+            <div class="float-card card-a"><span>AUTHENTICATION</span><b>HMAC-SHA256</b></div>
             <div class="float-card card-b"><span>DIGEST</span><b>SHA-256</b></div>
             <div class="float-card card-c"><span>ASYMMETRIC</span><b>RSA-2048</b></div>
           </div>
@@ -173,13 +165,13 @@
           </article>
           <article class="kpi-card">
             <div class="kpi-head">
-              <span>Encrypted Documents</span>
+              <span>Digital Signatures</span>
               <span class="kpi-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
               </span>
             </div>
-            <strong class="kpi-value" id="stat-encrypted">0</strong>
-            <small class="kpi-sub">AES-256-GCM &amp; RSA-OAEP</small>
+            <strong class="kpi-value" id="stat-signatures">0</strong>
+            <small class="kpi-sub">RSA-PSS (SHA-256)</small>
           </article>
           <article class="kpi-card">
             <div class="kpi-head">
@@ -208,37 +200,10 @@
             <span class="eyebrow">CRYPTOGRAPHY MODULES</span>
             <h2>Security Operations</h2>
           </div>
-          <span class="muted">Select a dedicated workspace</span>
+          <span class="muted">Four cryptography modules</span>
         </div>
 
-        <div class="tool-grid five-cols">
-          <button type="button" class="tool-card" data-go="encryption">
-            <span class="tool-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
-            </span>
-            <span class="tool-tag">PRACTICAL 03</span>
-            <b>Encrypt Document</b>
-            <p>Protect text or files up to 10 MB with authenticated AES-256-GCM encryption.</p>
-            <span class="tool-link">Open Encryption →</span>
-          </button>
-          <button type="button" class="tool-card" data-go="decryption">
-            <span class="tool-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 017.5-1.9"/></svg>
-            </span>
-            <span class="tool-tag">PRACTICAL 03</span>
-            <b>Decrypt Document</b>
-            <p>Verify the GCM authentication tag and restore encrypted packages or files.</p>
-            <span class="tool-link">Open Decryption →</span>
-          </button>
-          <button type="button" class="tool-card" data-go="rsa">
-            <span class="tool-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
-            </span>
-            <span class="tool-tag">PRACTICAL 04</span>
-            <b>Digital Signature</b>
-            <p>Generate RSA-2048 keys, sign documents with PSS, and encrypt short secrets via OAEP.</p>
-            <span class="tool-link">Open RSA Toolkit →</span>
-          </button>
+        <div class="tool-grid">
           <button type="button" class="tool-card" data-go="integrity">
             <span class="tool-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/></svg>
@@ -247,6 +212,24 @@
             <b>Document Integrity</b>
             <p>Compute SHA-256 digests and legacy SHA-1 hashes, and compare file fingerprints.</p>
             <span class="tool-link">Open Integrity →</span>
+          </button>
+          <button type="button" class="tool-card" data-go="rsa" data-scroll-to="rsa-oaep-card">
+            <span class="tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>
+            </span>
+            <span class="tool-tag">PRACTICAL 04 · OAEP</span>
+            <b>RSA Encryption &amp; Decryption</b>
+            <p>Generate 2048-bit RSA keys and encrypt or decrypt short messages with OAEP/SHA-256.</p>
+            <span class="tool-link">Open RSA Encryption →</span>
+          </button>
+          <button type="button" class="tool-card" data-go="rsa" data-scroll-to="rsa-pss-card">
+            <span class="tool-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+            </span>
+            <span class="tool-tag">PRACTICAL 04 · PSS</span>
+            <b>Digital Signature</b>
+            <p>Sign documents with RSA-PSS (SHA-256) private keys and verify authenticity with public keys.</p>
+            <span class="tool-link">Open Digital Signature →</span>
           </button>
           <button type="button" class="tool-card" data-go="authentication">
             <span class="tool-icon" aria-hidden="true">
@@ -271,7 +254,7 @@
             <div id="overview-activity" class="activity-preview">
               <div class="empty-state">
                 <b>No activity recorded yet</b>
-                <p>Encrypt, hash, sign, or verify a document to inspect real-time backend telemetry here.</p>
+                <p>Hash, sign, encrypt with RSA, or verify a document to inspect real-time backend telemetry here.</p>
               </div>
             </div>
           </div>
@@ -282,137 +265,12 @@
                 <span class="eyebrow">SYLLABUS &amp; SECURITY</span>
                 <h3>Cryptographic Guarantees</h3>
               </div>
-              <span class="tiny-pill">4 PRACTICALS</span>
+              <span class="tiny-pill">4 MODULES</span>
             </div>
-            <div class="syllabus-row"><span class="syllabus-num">03</span><div><b>AES-256-GCM</b><small>256-bit key · 96-bit CSPRNG nonce · Authenticated</small></div><span class="check" aria-hidden="true">✓</span></div>
-            <div class="syllabus-row"><span class="syllabus-num">04</span><div><b>RSA-2048+</b><small>OAEP/SHA-256 encryption · PSS/SHA-256 signatures</small></div><span class="check" aria-hidden="true">✓</span></div>
+            <div class="syllabus-row"><span class="syllabus-num">04</span><div><b>RSA-2048 Encryption</b><small>RSA-OAEP with SHA-256 · Public/private key pair</small></div><span class="check" aria-hidden="true">✓</span></div>
+            <div class="syllabus-row"><span class="syllabus-num">04</span><div><b>Digital Signatures</b><small>RSA-PSS with SHA-256 · Sign and verify</small></div><span class="check" aria-hidden="true">✓</span></div>
             <div class="syllabus-row"><span class="syllabus-num">06</span><div><b>SHA-256 &amp; SHA-1</b><small>SHA-1 marked legacy/insecure · Prefer SHA-256</small></div><span class="check" aria-hidden="true">✓</span></div>
             <div class="syllabus-row"><span class="syllabus-num">08</span><div><b>HMAC-SHA256</b><small>256-bit secret · Constant-time verification</small></div><span class="check" aria-hidden="true">✓</span></div>
-          </div>
-        </div>
-      </section>
-
-      <!-- DOCUMENT ENCRYPTION -->
-      <section class="view" id="view-encryption">
-        <div class="intro">
-          <span class="eyebrow">PRACTICAL 03 · SYMMETRIC ENCRYPTION</span>
-          <h2>Document Encryption</h2>
-          <p>Encrypt documents or text in memory using authenticated AES-256-GCM. A fresh 256-bit key and 96-bit nonce are generated for each encryption.</p>
-        </div>
-        <div class="workspace-card">
-          <div class="panel-title">
-            <div>
-              <span class="eyebrow">CIPHER CONFIGURATION</span>
-              <h3>Encrypt with AES-256-GCM</h3>
-            </div>
-            <span class="tiny-pill">AUTHENTICATED AEAD</span>
-          </div>
-
-          <label for="aes-algorithm">Encryption algorithm</label>
-          <select id="aes-algorithm" aria-label="Encryption algorithm">
-            <option value="AES-256-GCM" selected>AES-256-GCM (256-bit key · 96-bit nonce · Authenticated)</option>
-          </select>
-
-          <label for="aes-text">Document input or file upload (max 10 MB)</label>
-          <div class="dropzone" data-dropzone="aes-text">
-            <input class="file-input" id="aes-file" type="file" data-file-target="aes-text" aria-label="Choose a document file to encrypt">
-            <span class="file-meta" id="aes-text-meta">No file attached — type text below or choose a file.</span>
-          </div>
-          <textarea id="aes-text" placeholder="Enter confidential document text to encrypt..."></textarea>
-
-          <div class="actions">
-            <button type="button" class="primary" id="aes-encrypt">Encrypt Document <span aria-hidden="true">→</span></button>
-            <button type="button" class="secondary clear-target" data-clear-target="aes-text">Clear Input</button>
-            <span class="helper">Processed in memory only. Key is never stored on the server.</span>
-          </div>
-
-          <div class="result hidden" id="aes-result">
-            <div class="result-head">
-              <b>Encrypted Package Ready</b>
-              <span class="status-pill good" id="aes-status-badge">AES-256-GCM Encrypted</span>
-            </div>
-            <div class="warning-box">Save this secret key and package now. SecureDoc does not store keys and cannot recover lost keys.</div>
-
-            <label for="aes-key">Secret Key (Base64)</label>
-            <div class="secret-row">
-              <textarea id="aes-key" class="secret-field masked" readonly></textarea>
-              <div class="secret-actions">
-                <button type="button" class="secondary toggle-mask" data-mask-target="aes-key">Reveal</button>
-                <button type="button" class="secondary" data-copy="aes-key">Copy</button>
-              </div>
-            </div>
-
-            <label>96-Bit Nonce (Base64)</label>
-            <div class="hash-value mono" id="aes-nonce"></div>
-
-            <label for="aes-ciphertext">Ciphertext + Authentication Tag (Base64)</label>
-            <textarea id="aes-ciphertext" class="mono" readonly></textarea>
-
-            <div class="actions">
-              <button type="button" class="primary" id="use-aes-package">Open in Decryption <span aria-hidden="true">→</span></button>
-              <button type="button" class="secondary" id="download-aes">Download Package (.json)</button>
-              <button type="button" class="secondary" id="copy-aes-package">Copy Package JSON</button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- DOCUMENT DECRYPTION -->
-      <section class="view" id="view-decryption">
-        <div class="intro">
-          <span class="eyebrow">PRACTICAL 03 · AUTHENTICATED DECRYPTION</span>
-          <h2>Document Decryption</h2>
-          <p>Restore an AES-256-GCM encrypted package. Decryption succeeds only when the key, nonce, and authentication tag match without tampering.</p>
-        </div>
-        <div class="workspace-card">
-          <div class="panel-title">
-            <div>
-              <span class="eyebrow">RESTORE &amp; VERIFY TAG</span>
-              <h3>Decrypt Encrypted Package</h3>
-            </div>
-            <div class="segmented" role="tablist" aria-label="Decryption input mode">
-              <button type="button" class="seg-btn active" data-decrypt-mode="json" role="tab" aria-selected="true">Package JSON / File</button>
-              <button type="button" class="seg-btn" data-decrypt-mode="manual" role="tab" aria-selected="false">Manual Key + Fields</button>
-            </div>
-          </div>
-
-          <div id="decrypt-mode-json">
-            <label for="aes-package-file">Upload encrypted package (.json)</label>
-            <div class="dropzone">
-              <input class="file-input" id="aes-package-file" type="file" accept=".json,application/json,text/plain" aria-label="Upload encrypted JSON package">
-              <span class="file-meta" id="aes-package-file-meta">Select a downloaded securedoc-encrypted-package.json or paste below.</span>
-            </div>
-            <label for="aes-package">Encrypted Package JSON</label>
-            <textarea id="aes-package" class="mono" placeholder='{"algorithm":"AES-256-GCM","key":"...","nonce":"...","ciphertext":"..."}'></textarea>
-          </div>
-
-          <div id="decrypt-mode-manual" class="hidden">
-            <label for="aes-dec-key">Secret Key (Base64)</label>
-            <input type="password" id="aes-dec-key" class="mono" placeholder="Paste 256-bit Base64 AES key...">
-            <label for="aes-dec-nonce">Nonce (Base64)</label>
-            <input type="text" id="aes-dec-nonce" class="mono" placeholder="Paste 96-bit Base64 nonce...">
-            <label for="aes-dec-ciphertext">Ciphertext (Base64)</label>
-            <textarea id="aes-dec-ciphertext" class="mono" placeholder="Paste Base64 ciphertext + tag..."></textarea>
-          </div>
-
-          <div class="actions">
-            <button type="button" class="primary" id="aes-decrypt">Decrypt Document <span aria-hidden="true">→</span></button>
-            <button type="button" class="secondary" id="clear-decrypt">Clear</button>
-          </div>
-
-          <div class="inline-status hidden" id="aes-decrypt-status" role="status" aria-live="polite"></div>
-
-          <div class="result hidden" id="aes-plain-result">
-            <div class="result-head">
-              <b>Restored Document</b>
-              <span class="status-pill good" id="aes-plain-bytes">0 bytes</span>
-            </div>
-            <label for="aes-plain">Decrypted Content</label>
-            <textarea id="aes-plain" readonly></textarea>
-            <div class="actions">
-              <button type="button" class="secondary" id="download-plain">Download Restored Document</button>
-              <button type="button" class="secondary" data-copy="aes-plain">Copy Text</button>
-            </div>
           </div>
         </div>
       </section>
@@ -454,7 +312,7 @@
           <div class="warning-box">Educational demo notice: keys are generated per request on the server and held only in this page's memory until cleared or refreshed.</div>
         </div>
 
-        <div class="workspace-card">
+        <div class="workspace-card" id="rsa-pss-card">
           <div class="panel-title">
             <div>
               <span class="eyebrow">RSA-PSS + SHA-256</span>
@@ -478,7 +336,7 @@
           <div class="inline-status hidden" id="rsa-verify-result" role="status" aria-live="polite"></div>
         </div>
 
-        <div class="workspace-card">
+        <div class="workspace-card" id="rsa-oaep-card">
           <div class="panel-title">
             <div>
               <span class="eyebrow">RSA-OAEP + SHA-256</span>
@@ -729,7 +587,7 @@
           <div class="table-wrap" id="activity-table-wrap">
             <div class="empty-state">
               <b>No security events recorded yet</b>
-              <p>Run encryption, decryption, signing, hashing, or HMAC verification to populate live telemetry.</p>
+              <p>Run hashing, RSA encryption/signing, or HMAC verification to populate live telemetry.</p>
             </div>
           </div>
         </div>
@@ -754,7 +612,7 @@
             </div>
             <div class="config-list" id="config-list">
               <div class="config-row"><span>Max Upload Size</span><b id="cfg-max-file">10 MB</b></div>
-              <div class="config-row"><span>AES Cipher</span><b id="cfg-aes">AES-256-GCM</b></div>
+              <div class="config-row"><span>RSA Standard</span><b id="cfg-rsa">RSA-OAEP / RSA-PSS (SHA-256)</b></div>
               <div class="config-row"><span>RSA Minimum Key Size</span><b id="cfg-rsa-bits">2048 bits</b></div>
               <div class="config-row"><span>RSA-OAEP Cap</span><b id="cfg-rsa-bytes">190 UTF-8 bytes</b></div>
               <div class="config-row"><span>HMAC Standard</span><b id="cfg-hmac">HMAC-SHA256</b></div>
@@ -783,7 +641,7 @@
       </section>
 
       <footer>
-        SecureDoc Academic Cryptography Suite <span>·</span> AES-256-GCM · RSA-2048 · SHA-256 · HMAC-SHA256 <span>·</span> No documents or keys persisted
+        SecureDoc Academic Cryptography Suite <span>·</span> RSA-2048 · SHA-256 · HMAC-SHA256 <span>·</span> No documents or keys persisted
       </footer>
     </main>
   </div>

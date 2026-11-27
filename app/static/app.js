@@ -3,14 +3,11 @@ let toastTimer;
 const uploadedFiles = new Map();
 let cachedActivity = [];
 let activityFilter = 'all';
-let decryptMode = 'json';
 let verifyTab = 'rsa';
 
 const VIEW_TITLES = {
   overview: 'Dashboard',
-  encryption: 'Document Encryption',
-  decryption: 'Document Decryption',
-  rsa: 'Digital Signature & RSA',
+  rsa: 'RSA & Digital Signature',
   verify: 'Verify Document',
   integrity: 'Integrity Checker',
   authentication: 'HMAC Authentication',
@@ -20,11 +17,10 @@ const VIEW_TITLES = {
 
 const SEARCH_CATALOG = [
   { label: 'Dashboard Overview', tag: 'Overview', view: 'overview' },
-  { label: 'Encrypt Document (AES-256-GCM)', tag: 'Practical 03', view: 'encryption' },
-  { label: 'Decrypt Document (AES-256-GCM)', tag: 'Practical 03', view: 'decryption' },
-  { label: 'Digital Signature (RSA-PSS & OAEP)', tag: 'Practical 04', view: 'rsa' },
-  { label: 'Verify Document (Signature / HMAC / Hash)', tag: 'Verification', view: 'verify' },
   { label: 'Integrity Checker (SHA-256 & SHA-1)', tag: 'Practical 06', view: 'integrity' },
+  { label: 'RSA Encryption & Decryption (OAEP/SHA-256)', tag: 'Practical 04', view: 'rsa', scrollTo: 'rsa-oaep-card' },
+  { label: 'Digital Signature (RSA-PSS/SHA-256)', tag: 'Practical 04', view: 'rsa', scrollTo: 'rsa-pss-card' },
+  { label: 'Verify Document (Signature / HMAC / Hash)', tag: 'Verification', view: 'verify' },
   { label: 'HMAC-SHA256 Authentication', tag: 'Practical 08', view: 'authentication' },
   { label: 'Security Activity Log', tag: 'Telemetry', view: 'activity' },
   { label: 'Settings & Security Policy', tag: 'System', view: 'settings' },
@@ -203,15 +199,6 @@ function download(name, content, type = 'text/plain;charset=utf-8') {
   URL.revokeObjectURL(url);
 }
 
-function packageData() {
-  return {
-    algorithm: 'AES-256-GCM',
-    key: text('aes-key'),
-    nonce: $('aes-nonce').textContent.trim(),
-    ciphertext: text('aes-ciphertext'),
-  };
-}
-
 function bindAction(id, fn, loadingText = 'Processing...') {
   const button = $(id);
   if (!button) return;
@@ -287,6 +274,12 @@ document.querySelectorAll('[data-go]').forEach((b) => {
   b.addEventListener('click', (e) => {
     e.preventDefault();
     navigate(b.dataset.go);
+    if (b.dataset.scrollTo) {
+      const target = $(b.dataset.scrollTo);
+      if (target) {
+        requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+      }
+    }
   });
 });
 
@@ -337,129 +330,6 @@ document.querySelectorAll('[data-mask-target]').forEach((btn) => {
     const nowMasked = target.classList.toggle('masked');
     btn.textContent = nowMasked ? (btn.textContent.includes('Key') ? 'Reveal Key' : 'Reveal') : 'Hide';
   });
-});
-
-/* Practical 03: Encryption */
-bindAction('aes-encrypt', async () => {
-  const r = await api('/aes/encrypt', documentPayload('aes-text'));
-  $('aes-key').value = r.key;
-  $('aes-nonce').textContent = r.nonce;
-  $('aes-ciphertext').value = r.ciphertext;
-  showResult('aes-result');
-  toast('Document encrypted with AES-256-GCM.');
-}, 'Encrypting...');
-
-$('download-aes').addEventListener('click', () => {
-  download('securedoc-encrypted-package.json', JSON.stringify(packageData(), null, 2), 'application/json');
-});
-
-$('copy-aes-package').addEventListener('click', () => {
-  copyToClipboard(JSON.stringify(packageData(), null, 2), 'Encrypted package JSON copied.');
-});
-
-$('use-aes-package').addEventListener('click', () => {
-  $('aes-package').value = JSON.stringify(packageData(), null, 2);
-  setDecryptMode('json');
-  navigate('decryption');
-  toast('Encrypted package loaded into Document Decryption.');
-});
-
-/* Practical 03: Decryption */
-function setDecryptMode(mode) {
-  decryptMode = mode;
-  document.querySelectorAll('[data-decrypt-mode]').forEach((btn) => {
-    const active = btn.dataset.decryptMode === mode;
-    btn.classList.toggle('active', active);
-    btn.setAttribute('aria-selected', active ? 'true' : 'false');
-  });
-  $('decrypt-mode-json').classList.toggle('hidden', mode !== 'json');
-  $('decrypt-mode-manual').classList.toggle('hidden', mode !== 'manual');
-}
-
-document.querySelectorAll('[data-decrypt-mode]').forEach((btn) => {
-  btn.addEventListener('click', () => setDecryptMode(btn.dataset.decryptMode));
-});
-
-$('aes-package-file').addEventListener('change', async () => {
-  const input = $('aes-package-file');
-  const file = input.files[0];
-  if (!file) return;
-  const err = validateFilename(file.name);
-  if (err) {
-    toast(err);
-    input.value = '';
-    return;
-  }
-  if (file.size > MAX_FILE_BYTES) {
-    toast('Package file exceeds 10 MB.');
-    input.value = '';
-    return;
-  }
-  $('aes-package').value = await file.text();
-  $('aes-package-file-meta').textContent = `Loaded package: ${file.name}`;
-  toast('Encrypted package file loaded.');
-});
-
-$('clear-decrypt').addEventListener('click', () => {
-  $('aes-package').value = '';
-  $('aes-package-file').value = '';
-  $('aes-package-file-meta').textContent = 'Select a downloaded securedoc-encrypted-package.json or paste below.';
-  $('aes-dec-key').value = '';
-  $('aes-dec-nonce').value = '';
-  $('aes-dec-ciphertext').value = '';
-  $('aes-decrypt-status').classList.add('hidden');
-  $('aes-plain-result').classList.add('hidden');
-});
-
-bindAction('aes-decrypt', async () => {
-  $('aes-decrypt-status').classList.add('hidden');
-  $('aes-plain-result').classList.add('hidden');
-
-  let payloadObj;
-  if (decryptMode === 'json') {
-    const rawPackage = text('aes-package').trim();
-    if (!rawPackage) {
-      throw new Error('Paste or upload an encrypted package JSON first.');
-    }
-    try {
-      payloadObj = JSON.parse(rawPackage);
-    } catch {
-      throw new Error('Invalid JSON format in encrypted package.');
-    }
-    if (!payloadObj || typeof payloadObj !== 'object' || Array.isArray(payloadObj)) {
-      throw new Error('Encrypted package must be a JSON object.');
-    }
-  } else {
-    payloadObj = {
-      key: text('aes-dec-key'),
-      nonce: text('aes-dec-nonce'),
-      ciphertext: text('aes-dec-ciphertext'),
-    };
-  }
-
-  try {
-    const r = await api('/aes/decrypt', payloadObj);
-    $('aes-plain').value = r.document ?? `Binary document (${r.bytes} bytes) decrypted. Use Download Restored Document.`;
-    $('aes-plain-bytes').textContent = `${r.bytes.toLocaleString()} bytes`;
-    window.restoredDocumentBase64 = r.document_base64;
-    window.restoredIsBinary = r.document === null;
-    setStatus('aes-decrypt-status', 'GCM authentication tag verified. Document decrypted.', true);
-    showResult('aes-plain-result');
-    toast('Authentication passed. Document decrypted.');
-  } catch (err) {
-    setStatus('aes-decrypt-status', err.message, false);
-    throw err;
-  }
-}, 'Decrypting...');
-
-$('download-plain').addEventListener('click', () => {
-  if (window.restoredIsBinary && window.restoredDocumentBase64) {
-    const raw = atob(window.restoredDocumentBase64);
-    const bytes = Uint8Array.from(raw, (c) => c.charCodeAt(0));
-    download('securedoc-restored-document.bin', bytes, 'application/octet-stream');
-  } else {
-    download('securedoc-restored-document.txt', text('aes-plain'));
-  }
 });
 
 /* Practical 04: RSA */
@@ -736,7 +606,7 @@ async function refreshTelemetry() {
   cachedActivity = data.events || [];
 
   $('stat-total').textContent = m.total_processed.toLocaleString();
-  $('stat-encrypted').textContent = m.encrypted_documents.toLocaleString();
+  $('stat-signatures').textContent = m.signatures_created.toLocaleString();
   $('stat-verified').textContent = m.verified_documents.toLocaleString();
   $('stat-failures').textContent = m.integrity_failures.toLocaleString();
   $('stat-total-sub').textContent =
@@ -748,7 +618,7 @@ async function refreshTelemetry() {
     cachedActivity,
     'overview-activity',
     'No activity recorded yet',
-    'Encrypt, hash, sign, or verify a document to inspect real-time backend telemetry here.',
+    'Hash, sign, encrypt with RSA, or verify a document to inspect real-time backend telemetry here.',
     5
   );
   renderActivityTable(
@@ -843,7 +713,12 @@ $('global-search').addEventListener('input', () => {
       .join('');
     box.querySelectorAll('[data-search-view]').forEach((btn) => {
       btn.addEventListener('click', () => {
+        const match = SEARCH_CATALOG.find((item) => item.view === btn.dataset.searchView && btn.textContent.includes(item.label));
         navigate(btn.dataset.searchView);
+        if (match?.scrollTo) {
+          const target = $(match.scrollTo);
+          if (target) requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+        }
         box.classList.add('hidden');
       });
     });
@@ -873,8 +748,6 @@ $('pref-mask-secrets').addEventListener('change', (e) => {
 
 $('wipe-browser-state').addEventListener('click', () => {
   uploadedFiles.clear();
-  window.restoredDocumentBase64 = null;
-  window.restoredIsBinary = false;
   document.querySelectorAll('textarea').forEach((el) => { el.value = ''; });
   document.querySelectorAll('input[type="password"], input[type="text"]').forEach((el) => { el.value = ''; });
   document.querySelectorAll('input[type="file"]').forEach((el) => { el.value = ''; });
@@ -882,7 +755,6 @@ $('wipe-browser-state').addEventListener('click', () => {
     el.textContent = 'No file attached — type text below or select a file.';
   });
   document.querySelectorAll('.result, .inline-status').forEach((el) => el.classList.add('hidden'));
-  $('aes-nonce').textContent = '';
   $('rsa-plain').textContent = '';
   $('sha1-value').textContent = '';
   $('sha256-value').textContent = '';
@@ -894,7 +766,7 @@ async function loadBackendConfig() {
   try {
     const cfg = await api('/config', null, 'GET');
     $('cfg-max-file').textContent = `${Math.round(cfg.max_file_bytes / (1024 * 1024))} MB`;
-    $('cfg-aes').textContent = cfg.aes_algorithm;
+    $('cfg-rsa').textContent = cfg.rsa_algorithm;
     $('cfg-rsa-bits').textContent = `${cfg.rsa_min_bits} bits minimum`;
     $('cfg-rsa-bytes').textContent = `${cfg.max_rsa_bytes} UTF-8 bytes`;
     $('cfg-hmac').textContent = cfg.hmac_algorithm;
